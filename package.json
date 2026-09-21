@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
-    "@prisma/client": "^7.10.0",
+    "@prisma/client": "^6.12.0",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.1",
     "lucide-react": "^1.47.0",
