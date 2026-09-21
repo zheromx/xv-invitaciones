@@ -1,4 +1,5 @@
 import { PrismaClient, Plantilla } from "@prisma/client";
+import { hashContrasena } from "../lib/hash";
 
 const prisma = new PrismaClient();
 
@@ -56,21 +57,20 @@ async function sincronizarPersonas(
 }
 
 async function main() {
+  const passwordHash = await hashContrasena(PASSWORD_DESARROLLO);
+
   const usuario = await prisma.usuario.upsert({
     where: { email: EMAIL_DESARROLLO },
     update: {
       nombre: "Desarrollo — usuario temporal",
-      password: PASSWORD_DESARROLLO,
+      password: passwordHash,
     },
     create: {
       email: EMAIL_DESARROLLO,
-      password: PASSWORD_DESARROLLO,
+      password: passwordHash,
       nombre: "Desarrollo — usuario temporal",
     },
   });
-
-  // TODO: cuando se implemente Auth.js, sustituir esta contraseña de
-  // desarrollo por un hash seguro (bcrypt/argon2). No es válida para producción.
 
   const eventoExistente = await prisma.evento.findFirst({
     where: { usuarioId: usuario.id },

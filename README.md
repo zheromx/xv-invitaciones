@@ -33,7 +33,27 @@ Tokens públicos de prueba (la ruta real usa `Invitacion.token`):
 - Sin responder: `/invitacion/dev-familia-lopez-sin-responder-2026`
 - Respondida: `/invitacion/dev-familia-martinez-respondida-2026`
 
-El usuario de desarrollo usa el correo ficticio `desarrollo@invitaciones.local` y una contraseña temporal; al integrar Auth.js se sustituirá por un hash seguro.
+El usuario de desarrollo usa el correo ficticio `desarrollo@invitaciones.local`; la contraseña se guarda con hash bcrypt (`PASSWORD_DESARROLLO` en `prisma/seed.ts`). No es válida para producción.
+
+## Login del panel (Auth.js)
+
+El panel del organizador está protegido con Auth.js v5 (Credenciales, sesión JWT sin base de datos):
+
+- `/login` — página pública de inicio de sesión.
+- `/panel` — área protegida por `proxy.ts` y por el layout del panel.
+
+Requisitos para desarrollo:
+
+```bash
+# 1. Crea el usuario de desarrollo (hash bcrypt)
+npx prisma db seed
+
+# 2. Asegúrate de tener AUTH_SECRET en tu .env
+#    (se puede copiar de .env.example; generarlo con: npx auth secret)
+npm run dev
+```
+
+Las rutas públicas (`/`, `/login`, `/invitacion/demo`, `/invitacion/[token]`) no requieren sesión.
 
 ## Learn More
 

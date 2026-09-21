@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `de011a4` · **Working tree:** contiene la ruta real `/invitacion/[token]`, el seed de desarrollo y el RSVP funcional (sin commitear)
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `f0db387` · **Working tree:** contiene el entregable **Panel de administración + login Auth.js** verificado pero **sin commitear** — `git status` confirma cambios pendientes (dependencias `next-auth`/`bcryptjs`, `auth.ts`, `proxy.ts`, login/panel, seed con hash, `.env.example`)
 
 ---
 
@@ -187,25 +187,67 @@ $transaction(tx =>
 
 | Comando | Resultado |
 |---|---|
-| `npm run lint` | Sin errores |
+| `git diff --check` | Sin errores de whitespace |
+| `npm run lint` | Sin errores (RSVP + panel) |
 | `npx tsc --noEmit` | Sin errores |
-| `npm run build` | Compilado OK; `/` y `/invitacion/demo` estáticas, `/invitacion/[token]` dinámica |
-| `npx prisma db seed` | Ejecutado 2 veces (idempotente) |
-| Rutas (runtime `next start`) | López 200 · Martínez 200 · token inventado 404 · demo 200 |
+| `npm run build` | Compilado OK; `/login` y `/panel` dinámicas, `/api/auth/[...nextauth]` dinámica; proxy activo |
+| `npx prisma db seed` | Ejecutado 2 veces (idempotente); contraseña dev guardada como hash bcrypt (60 chars, prefijo `$2`) |
+| Rutas (runtime `next start`) | López 200 · Martínez 200 · token inventado 404 · demo 200 · login 200 |
+| Pruebas manuales de login/protección/rutas públicas | Login válido 302→`/panel` · `/api/auth/session` expone `user.id` · contraseña inválida → error · `/panel` sin sesión 302→`/login` · `/login` con sesión 307→`/panel` · logout invalida · públicas 200 (detalle en §9) |
 | Checks transaccionales (script temporal) | 15/15 PASS (parcial, todos, nadie, doble envío, id ajeno sin mutación, token inexistente, seed respondida, concurrencia) |
 
 ---
 
-## 9. Estado actual y pendientes
+## 9. Panel de administración + login con Auth.js
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo**.
+Login del organizador con **Auth.js v5** (Credenciales, sesión **JWT sin adaptador**, sin tablas `Account`/`Session`) y contraseñas con **bcryptjs**. El panel `/panel` queda protegido; el REST permanece público.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `auth.ts` | `NextAuth`: provider Credentials (busca `Usuario` por email en Postgres + verifica con bcryptjs), `session: { strategy: "jwt" }`, `pages.signIn = "/login"`; callbacks `jwt`/`session` exponen `user.id`; augmentation de `Session` para `user.id: string` |
+| Creado | `app/api/auth/[...nextauth]/route.ts` | Re-exporta los handlers Auth.js (`GET`/`POST`) |
+| Creado | `proxy.ts` | Convención **proxy** (sustituye `middleware.ts`, deprecado en Next 16), matcher `/panel/:path*`; sin sesión → `Redirect /login` |
+| Creado | `lib/hash.ts` | `hashContrasena`/`verificarContrasena` (bcryptjs, sin `@types` extra) |
+| Creado | `lib/acciones-auth.ts` | Server Actions `iniciarSesion` (llama `signIn("credentials", …)`; captura `AuthError` → error genérico "Correo o contraseña incorrectos") y `cerrarSesion` |
+| Creado | `app/login/page.tsx` | Página pública de login; si ya hay sesión → `redirect("/panel")` |
+| Creado | `components/login/formulario-login.tsx` | Único componente cliente: formulario nativo + `useActionState`, error genérico, `focus-visible` |
+| Creado | `app/panel/layout.tsx` | Doble barrera: valida sesión en servidor y redirige; header con nombre/email y botón Salir |
+| Creado | `app/panel/page.tsx` | Cascarón del panel: resuelve `Evento.usuarioId` de la sesión y muestra estado del evento/sesión (sin CRUD ni métricas) |
+| Modificado | `prisma/seed.ts` | Upsert del usuario dev con **hash bcrypt** (`hashContrasena`), sustituye la contraseña plana + TODO |
+| Creado | `.env.example` | `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` (y `AUTH_TRUST_HOST` comentado como opcional) |
+| Modificado | `.gitignore` | Excepción `!.env.example` para versionar el ejemplo |
+| Modificado | `README.md` | Sección "Login del panel (Auth.js)" |
+| Modificado | `docs/REPORTE-AVANCE.md` | Este reporte |
+
+**Decisiones clave:** misma falla para email inexistente o contraseña inválida (se retorna `null` en `authorize`, sin filtrar cuál falló); `user.id` tipado y estable en la sesión para consumo server-side de `/panel`; sin `SessionProvider` global; el middleware/proxy **no** es la única barrera (el layout valida otra vez). El "No podré asistir"/RSVP y las rutas públicas no se tocaron.
+
+**Pruebas manuales (runtime `next start`):**
+
+| Caso | Resultado |
+|---|---|
+| `/` y `/invitacion/demo` | 200 |
+| `/invitacion/dev-familia-*-2026` (ambos tokens) | 200 |
+| `/panel` sin sesión | 302 → `/login` |
+| `/login` sin sesión | 200 |
+| Login válido (`desarrollo@invitaciones.local` + password dev) | 302 → `/panel`; `/panel` 200 con "evento encontrada y vinculada" |
+| `/api/auth/session` con cookie | `user` con `id` del usuario |
+| Contraseña inválida | 302 → `/login?error=CredentialsSignin` (y el form da el error genérico) |
+| `/login` con sesión activa | 307 → `/panel` |
+| `POST /api/auth/signout` | 302 → `/login`; `/panel` vuelve a 302 → `/login` |
+
+---
+
+## 10. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt).
 
 **Pendiente:**
-- Panel de administración + NextAuth (login del organizador).
-- CRUD de invitaciones + copiar/compartir link por `wa.me`.
-- Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
+- CRUD de invitaciones (crear, editar, borrar, copiar link) desde el panel.
+- Compartir link por WhatsApp (`wa.me`).
 - Dashboard de conteo (respondidas, personas confirmadas).
+- Configuración/datos editables del evento desde el panel (quinceañera, padres, fechas y lugares de misa/recepción, cronograma, galería, código de vestimenta, regalos).
+- Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
 - Sección de regalos (opcional, activable desde el panel).
+- Vista previa en el panel con los datos actuales del evento (reutiliza la misma plantilla).
 - Revisión manual en viewport 375 px y pruebas con datos reales del cliente.
 - Las 11 pruebas manuales de RSVP del plan (todos/algunos/nadie, doble clic, dos pestañas, token inexistente, id ajeno, ya respondida, error de BD, recarga, demo inerte).
-- Commit de la ruta real + seed + RSVP (a un solo commit o por entregable, cuando se indique).
