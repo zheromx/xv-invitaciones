@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf9f6;
+  --foreground: #2d312e;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(
+      --font-plus-jakarta,
+      "Plus Jakarta Sans"
+    ),
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-playfair, "Playfair Display"), Georgia,
+    "Times New Roman", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --font-display: var(--font-playfair, "Playfair Display"), Georgia,
+    "Times New Roman", serif;
+  --font-body: var(--font-plus-jakarta, "Plus Jakarta Sans"), ui-sans-serif,
+    system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-eucalipto-50: #f4f7f4;
+  --color-eucalipto-100: #e2ebe3;
+  --color-eucalipto-200: #c8d9cb;
+  --color-eucalipto-300: #a9bda9;
+  --color-eucalipto-400: #8fa89b;
+  --color-eucalipto-500: #708b7d;
+  --color-eucalipto-600: #4c6358;
+  --color-eucalipto-700: #264335;
+  --color-eucalipto-800: #1c3428;
+  --color-eucalipto-900: #0f2d20;
+
+  --color-marfil: #faf8f5;
+  --color-marfil-claro: #fbf9f6;
+  --color-marfil-osc: #f5f3f0;
+
+  --color-dorado: #c5a880;
+  --color-dorado-claro: #fedeb2;
+  --color-dorado-osc: #967a3f;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "primary-fixed": "#e5e1e4",
+          "surface-container-high": "#e8e8e9",
+          "on-secondary-fixed": "#1a1b22",
+          "error": "#ba1a1a",
+          "inverse-on-surface": "#f0f1f2",
+          "tertiary": "#000000",
+          "outline": "#78767b",
+          "outline-variant": "#c8c5ca",
+          "primary": "#000000",
+          "on-primary-container": "#858386",
+          "secondary": "#5d5e66",
+          "surface": "#f9f9fa",
+          "surface-variant": "#e2e2e3",
+          "on-error-container": "#93000a",
+          "on-primary": "#ffffff",
+          "tertiary-container": "#002113",
+          "inverse-surface": "#2f3132",
+          "background": "#f9f9fa",
+          "secondary-fixed": "#e3e1ec",
+          "inverse-primary": "#c8c6c8",
+          "surface-container-lowest": "#ffffff",
+          "on-secondary": "#ffffff",
+          "on-surface": "#1a1c1d",
+          "on-surface-variant": "#47464a",
+          "secondary-fixed-dim": "#c6c5cf",
+          "on-background": "#1a1c1d",
+          "on-tertiary-container": "#009668",
+          "secondary-container": "#e3e1ec",
+          "on-primary-fixed": "#1c1b1d",
+          "on-tertiary-fixed-variant": "#005236",
+          "surface-bright": "#f9f9fa",
+          "tertiary-fixed-dim": "#4edea3",
+          "surface-dim": "#dadadb",
+          "tertiary-fixed": "#6ffbbe",
+          "surface-container": "#eeeeef",
+          "primary-fixed-dim": "#c8c6c8",
+          "error-container": "#ffdad6",
+          "on-tertiary": "#ffffff",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#63646c",
+          "on-primary-fixed-variant": "#474649",
+          "surface-tint": "#5f5e60",
+          "surface-container-highest": "#e2e2e3",
+          "primary-container": "#1c1b1d",
+          "on-tertiary-fixed": "#002113",
+          "on-secondary-fixed-variant": "#46464e",
+          "surface-container-low": "#f3f3f4"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xl": "2rem",
+          "space-md": "1rem",
+          "gutter-sm": "1rem",
+          "space-sm": "0.5rem",
+          "space-xs": "0.25rem",
+          "margin": "2rem",
+          "gutter": "1.5rem",
+          "space-lg": "1.5rem",
+          "margin-sm": "1rem"
+        },
+        "fontFamily": {
+          "body-sm": ["Inter"],
+          "label-sm": ["Inter"],
+          "mono-metric": ["JetBrains Mono"],
+          "title-md": ["Inter"],
+          "body-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "title-sm": ["Inter"],
+          "headline-lg-mobile": ["Inter"],
+          "headline-lg": ["Inter"],
+          "headline-md": ["Inter"],
+          "label-md": ["Inter"],
+          "display": ["Inter"],
+          "headline-sm": ["Inter"]
+        },
+        "fontSize": {
+          "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400"}],
+          "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+          "mono-metric": ["14px", {"lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600"}],
+          "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}],
+          "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+          "title-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600"}],
+          "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+          "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+          "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+          "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700"}],
+          "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-14 px-space-md flex items-center justify-between border-b border-outline-variant/30"><div class="flex items-center gap-space-sm"><div class="w-6 h-6 rounded-lg bg-primary text-on-primary flex items-center justify-center font-title-sm text-title-sm">XV</div><span class="font-title-sm text-title-sm text-on-surface tracking-tight">XV Studio</span></div><span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container animate-pulse"></span>Activo</span></div><nav class="p-space-sm flex flex-col gap-1" data-active-classes="bg-surface-container-high text-on-surface font-medium"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors bg-surface-container-high text-on-surface font-medium" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">space_dashboard</span><span>Dashboard</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="invitados-y-pases" href="#"><span class="material-symbols-outlined text-[18px]">badge</span><span>Invitados y Pases</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="respuestas-rsvp" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span><span>Respuestas RSVP</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="configuracion-del-evento" href="#"><span class="material-symbols-outlined text-[18px]">tune</span><span>Configuración del Evento</span></a></nav></div><div class="p-space-sm border-t border-outline-variant/30 bg-surface-container-low"><div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer"><div class="flex items-center gap-space-sm overflow-hidden"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col truncate"><span class="font-label-md text-label-md text-on-surface font-semibold truncate">Ana Mendoza</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">María Fernanda · Nov 2026</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">unfold_more</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant/30 z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-2"><span class="font-label-md text-label-md text-on-surface-variant">Eventos</span><span class="text-outline-variant text-[14px]">/</span><span class="font-label-md text-label-md text-on-surface-variant">XV Años María Fernanda</span><span class="text-outline-variant text-[14px]">/</span><span class="font-label-md text-label-md text-on-surface font-semibold">Resumen</span></div><div class="flex items-center gap-space-md"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-outline-variant/50 bg-surface-container-low font-label-sm text-label-sm text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>En vivo</span><div class="h-4 w-px bg-outline-variant/40"></div><div class="flex items-center gap-1"><button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">help_outline</span></button><button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors relative" type="button"><span class="material-symbols-outlined text-[18px]">notifications</span><span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full"></span></button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-14 bg-surface w-full px-gutter min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md py-space-lg">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-sm">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">XV años de María Fernanda</h1>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-medium">Evento principal</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">calendar_today</span>
+<span>Sábado 7 de noviembre de 2026</span>
+<span class="text-outline-variant">·</span>
+<span class="material-symbols-outlined text-[16px] text-outline">location_on</span>
+<span>Hacienda San José de las Palmas</span>
+</p>
+</div>
+<!-- Header Action Buttons -->
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container shadow-sm transition-all font-title-sm text-title-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span>Vista previa</span>
+</button>
+<button class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-sm transition-all font-title-sm text-title-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Nueva invitación</span>
+</button>
+</div>
+</div>
+<!-- Metric Summary Cards (5 columns) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md mb-space-lg">
+<!-- Card 1: Invitaciones totales -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Invitaciones totales</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">mark_email_unread</span>
+</div>
+</div>
+<div class="mt-3">
+<span class="font-display text-display tracking-tight text-on-surface font-mono-metric">85</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">85 enlaces generados</p>
+</div>
+</div>
+<!-- Card 2: Respondidas -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Respondidas</span>
+<div class="w-7 h-7 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline justify-between">
+<span class="font-display text-display tracking-tight text-on-surface font-mono-metric">42</span>
+<span class="inline-flex items-center font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-medium">49.4% del total</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Confirmaciones recibidas</p>
+</div>
+</div>
+<!-- Card 3: Sin responder -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Sin responder</span>
+<div class="w-7 h-7 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline justify-between">
+<span class="font-display text-display tracking-tight text-on-surface font-mono-metric">43</span>
+<span class="inline-flex items-center font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-medium">50.6% pendiente</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">En espera de respuesta</p>
+</div>
+</div>
+<!-- Card 4: Personas confirmadas -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Personas confirmadas</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">group</span>
+</div>
+</div>
+<div class="mt-3">
+<span class="font-display text-display tracking-tight text-on-surface font-mono-metric">126</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span>Asistencia asegurada</span>
+</p>
+</div>
+</div>
+<!-- Card 5: Personas que no asistirán -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Personas que no asistirán</span>
+<div class="w-7 h-7 rounded-lg bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+</div>
+</div>
+<div class="mt-3">
+<span class="font-display text-display tracking-tight text-on-surface font-mono-metric">19</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Pases liberados</p>
+</div>
+</div>
+</div>
+<!-- Main Management Section Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Section Header & Filter Toolbar -->
+<div class="p-space-lg bg-surface-container-lowest flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface tracking-tight">Invitaciones recientes</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Listado y estado de confirmación en tiempo real</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant self-start sm:self-auto">Mostrando 8 de 85 invitaciones</span>
+</div>
+<!-- Controls Row: Search & Status Dropdown -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-sm">
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+<input class="w-full h-10 pl-9 pr-4 rounded-lg bg-surface-container-low text-on-surface placeholder:text-outline text-body-md font-body-md focus:outline-none focus:bg-surface-container transition-colors" id="searchInput" placeholder="Buscar por nombre de familia o persona..." type="text"/>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<select class="h-10 pl-3 pr-8 rounded-lg bg-surface-container-low text-on-surface font-title-sm text-title-sm appearance-none focus:outline-none cursor-pointer" id="filterSelect">
+<option value="all">Todos los estados</option>
+<option value="respondida">Respondida</option>
+<option value="sin_responder">Sin responder</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<button class="h-10 w-10 flex items-center justify-center rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Exportar CSV" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant">
+<th class="py-3 px-space-lg font-label-md text-label-md uppercase tracking-wider" scope="col">Familia o grupo</th>
+<th class="py-3 px-space-md font-label-md text-label-md uppercase tracking-wider" scope="col">Personas</th>
+<th class="py-3 px-space-md font-label-md text-label-md uppercase tracking-wider" scope="col">Estado</th>
+<th class="py-3 px-space-md font-label-md text-label-md uppercase tracking-wider" scope="col">Confirmada el</th>
+<th class="py-3 px-space-lg font-label-md text-label-md uppercase tracking-wider text-right" scope="col">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y-0" id="invitationsTable">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="respondida">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FR
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Rodríguez</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Carlos, Sofía, Mateo, Valentina</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">4 personas</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-medium">4 confirmadas</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                Respondida
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Hoy, 11:45 AM</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="respondida">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FM
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Morales Sandoval</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Alejandro y Sofía</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">2 personas</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-medium">2 confirmadas</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                Respondida
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Ayer, 19:10</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="sin_responder">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FH
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Herrera Garza</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Roberto, Daniela, Camila</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">3 personas</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pendiente</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Sin responder
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-mono-metric text-mono-metric text-outline">—</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="respondida">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FV
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Villanueva Peña</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Lic. Fernando Villanueva y Sra.</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">2 personas</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-medium">2 confirmadas</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                Respondida
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">2 nov 2026</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="sin_responder">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  JE
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Dr. Jorge Elizondo y Acompañante</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Jorge Elizondo, Acompañante</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">2 personas</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pendiente</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Sin responder
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-mono-metric text-mono-metric text-outline">—</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="respondida">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FC
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Castro Méndez</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">5 integrantes registrados</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">5 personas</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 confirmadas, 2 declinadas</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                Respondida
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">1 nov 2026</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="respondida">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  MS
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Mariana Solís</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Pase individual</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">1 persona</span>
+<span class="font-label-sm text-label-sm text-error font-medium">No asistirá</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                Respondida
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">31 oct 2026</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors" data-status="sin_responder">
+<td class="py-3 px-space-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface font-title-sm text-title-sm flex items-center justify-center shrink-0">
+                  FN
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-title-sm text-title-sm text-on-surface truncate">Familia Navarro Benítez</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Gonzalo Navarro y fam.</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-metric text-mono-metric text-on-surface font-medium">4 personas</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pendiente</span>
+</div>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Sin responder
+              </span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="font-mono-metric text-mono-metric text-outline">—</span>
+</td>
+<td class="py-3 px-space-lg text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Ver invitación" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Editar pases" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="copyLinkToast(this)" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Compartir por WhatsApp" type="button">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors" title="Eliminar" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-space-md bg-surface-container-low/40 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Página 1 de 11</span>
+<div class="flex items-center gap-space-sm">
+<button class="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg bg-surface-container-lowest text-on-surface-variant opacity-50 cursor-not-allowed font-title-sm text-title-sm" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+<span>Anterior</span>
+</button>
+<button class="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container shadow-sm transition-all font-title-sm text-title-sm" type="button">
+<span>Siguiente</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Toast Notification (Hidden by default) -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-200 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-on-primary shadow-xl font-body-sm text-body-sm" id="toastNotification">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>Enlace copiado al portapapeles</span>
+</div>
+</div>
+<script>
+  // Filter and Search logic
+  const searchInput = document.getElementById('searchInput');
+  const filterSelect = document.getElementById('filterSelect');
+  const tableRows = document.querySelectorAll('#invitationsTable tr');
+
+  function applyFilters() {
+    const query = (searchInput.value || '').toLowerCase();
+    const filter = filterSelect.value;
+
+    tableRows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const status = row.getAttribute('data-status');
+
+      const matchesSearch = text.includes(query);
+      const matchesFilter = filter === 'all' || status === filter;
+
+      if (matchesSearch && matchesFilter) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (filterSelect) filterSelect.addEventListener('change', applyFilters);
+
+  // Micro-interaction for copying link
+  function copyLinkToast(button) {
+    const toast = document.getElementById('toastNotification');
+    if (!toast) return;
+    
+    // Animate button icon momentarily
+    const icon = button.querySelector('.material-symbols-outlined');
+    const prevIcon = icon.innerText;
+    icon.innerText = 'check';
+    setTimeout(() => { icon.innerText = prevIcon; }, 1200);
+
+    // Show toast
+    toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(() => {
+      toast.classList.add('translate-y-12', 'opacity-0', 'pointer-events-none');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2400);
+  }
+</script></main></div></body></html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary": "#0f2d20", "surface-container-lowest": "#ffffff", "tertiary": "#362407", "tertiary-fixed": "#fedeb2", "on-primary-fixed-variant": "#304d3e", "outline-variant": "#c2c8c2", "on-tertiary": "#ffffff", "primary-fixed-dim": "#adcebb", "on-tertiary-fixed": "#281800", "on-surface-variant": "#424844", "on-secondary-fixed": "#092017", "on-secondary-container": "#52695e", "on-surface": "#1b1c1a", "tertiary-container": "#4e3a1b", "surface-dim": "#dbdad7", "inverse-surface": "#30312f", "on-error": "#ffffff", "surface-container-high": "#eae8e5", "on-tertiary-fixed-variant": "#584323", "tertiary-fixed-dim": "#e0c298", "surface-tint": "#476555", "on-background": "#1b1c1a", "surface": "#fbf9f6", "outline": "#727974", "inverse-on-surface": "#f2f0ed", "error-container": "#ffdad6", "error": "#ba1a1a", "on-secondary": "#ffffff", "surface-container-highest": "#e4e2df", "secondary-fixed-dim": "#b3ccbf", "secondary": "#4c6358", "surface-container-low": "#f5f3f0", "on-primary-fixed": "#032014", "secondary-container": "#cee9da", "surface-variant": "#e4e2df", "background": "#fbf9f6", "secondary-fixed": "#cee9da", "surface-container": "#efeeeb", "surface-bright": "#fbf9f6", "primary-fixed": "#c9ead6", "on-primary": "#ffffff", "on-primary-container": "#8faf9d", "inverse-primary": "#adcebb", "on-tertiary-container": "#c1a47c", "on-secondary-fixed-variant": "#354c41", "on-error-container": "#93000a", "primary-container": "#264335" }, "borderRadius": { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, "spacing": { "space-xl": "2.5rem", "gutter": "1rem", "space-2xl": "4rem", "space-sm": "0.5rem", "margin": "2rem", "margin-mobile": "1.25rem", "space-lg": "1.5rem", "space-md": "1rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem" }, "fontFamily": { "title-script": [ "Playfair Display" ], "display-hero": [ "Playfair Display" ], "headline-lg-mobile": [ "Playfair Display" ], "label-md": [ "Plus Jakarta Sans" ], "label-caps": [ "Plus Jakarta Sans" ], "body-lg": [ "Plus Jakarta Sans" ], "body-md": [ "Plus Jakarta Sans" ], "body-sm": [ "Plus Jakarta Sans" ], "headline-lg": [ "Playfair Display" ], "display-hero-mobile": [ "Playfair Display" ], "headline-md": [ "Playfair Display" ] }, "fontSize": { "title-script": [ "20px", { "lineHeight": "26px", "letterSpacing": "0.04em", "fontWeight": "400" } ], "display-hero": [ "48px", { "lineHeight": "54px", "letterSpacing": "-0.02em", "fontWeight": "400" } ], "headline-lg-mobile": [ "26px", { "lineHeight": "32px", "fontWeight": "500" } ], "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "label-caps": [ "11px", { "lineHeight": "16px", "letterSpacing": "0.12em", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "body-md": [ "14px", { "lineHeight": "22px", "fontWeight": "400" } ], "body-sm": [ "12px", { "lineHeight": "18px", "fontWeight": "400" } ], "headline-lg": [ "32px", { "lineHeight": "38px", "fontWeight": "400" } ], "display-hero-mobile": [ "38px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "400" } ], "headline-md": [ "22px", { "lineHeight": "28px", "fontWeight": "500" } ] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col pt-safe pb-safe"><main class="flex-1 w-full max-w-[420px] mx-auto px-margin-mobile bg-surface flex flex-col"><div class="flex flex-col w-full pb-space-2xl space-y-space-2xl">
+<!-- 1. Portada (Hero Cover) -->
+<section class="relative w-full overflow-hidden rounded-t-[140px] rounded-b-lg shadow-sm">
+<div class="relative w-full aspect-[3/4] overflow-hidden">
+<img alt="Retrato de María Fernanda en sus XV años" class="w-full h-full object-cover object-top" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphCn5FcgUUIM1LxElLt5w96mcAbWhWc-r0yy5pHbgYFIP8IzIv_xaTRxg4eH5-BOTmyO2fZe_mEZP3tofoQMeb4ZAkF2GPlWd_vxS5s94UIlP-JYWQU1N1VZfgNdt0ywZ3n8Jok-1SjuH7Vvx6yWkrgGEeQO3kjyzHOi0984BkMtQm9NVYiQLCTXADRu8NDoU1RBtIzzjfh90wEE7HyuTFmGgVXsTvtAEZDAm97pXAhBhAnYXwdm0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/30 to-transparent flex flex-col justify-end p-margin-mobile text-center text-surface-container-lowest">
+<!-- Delicate Botanical Motif -->
+<div class="flex items-center justify-center gap-2 mb-space-sm text-secondary-fixed">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+<path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"></path>
+</svg>
+<span class="font-label-caps text-label-caps uppercase tracking-[0.25em]">Celebración de Vida</span>
+<svg class="w-5 h-5 scale-x-[-1]" fill="currentColor" viewbox="0 0 24 24">
+<path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"></path>
+</svg>
+</div>
+<p class="font-label-caps text-label-caps uppercase text-tertiary-fixed tracking-[0.2em] mb-space-xs">
+          Mis XV Años
+        </p>
+<h1 class="font-display-hero-mobile text-display-hero-mobile text-surface-container-lowest mb-space-xs">
+          María Fernanda
+        </h1>
+<p class="font-body-md text-body-md text-surface-container-high tracking-wider">
+          Sábado 7 de noviembre de 2026
+        </p>
+</div>
+</div>
+</section>
+<!-- 2. Mensaje de bienvenida de los padres -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile text-center shadow-sm relative overflow-hidden">
+<div class="w-8 h-8 mx-auto mb-space-sm text-tertiary-container flex items-center justify-center opacity-80">
+<span class="material-symbols-outlined text-[28px]">format_quote</span>
+</div>
+<p class="font-title-script text-title-script text-primary italic mb-space-md leading-relaxed px-space-xs">
+      “Con la bendición de Dios y el amor de nuestros corazones, tenemos el honor de invitarles a celebrar los quince años de nuestra amada hija. Su presencia hará este día verdaderamente inolvidable.”
+    </p>
+<div class="w-12 h-[2px] bg-secondary-container mx-auto mb-space-md"></div>
+<p class="font-label-caps text-label-caps tracking-widest text-on-surface-variant uppercase">
+      Carlos Rodríguez &amp; Sofía Mendoza
+    </p>
+<p class="font-body-sm text-body-sm text-secondary">
+      Padres de la Quinceañera
+    </p>
+</section>
+<!-- 3. Cuenta regresiva -->
+<section class="flex flex-col items-center">
+<div class="flex items-center gap-2 mb-space-md">
+<span class="material-symbols-outlined text-secondary text-[18px]">schedule</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary">El Gran Día Se Acerca</span>
+</div>
+<div class="grid grid-cols-4 gap-gutter-mobile w-full text-center">
+<!-- Días -->
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT shadow-sm flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-primary font-bold" id="countdown-days">248</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Días</span>
+</div>
+<!-- Horas -->
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT shadow-sm flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-primary font-bold" id="countdown-hours">14</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Horas</span>
+</div>
+<!-- Minutos -->
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT shadow-sm flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-primary font-bold" id="countdown-minutes">32</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Min</span>
+</div>
+<!-- Segundos -->
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT shadow-sm flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-secondary font-bold" id="countdown-seconds">45</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Seg</span>
+</div>
+</div>
+</section>
+<!-- 4. Bloque "Ceremonia religiosa" -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile shadow-sm flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-primary flex items-center justify-center mb-space-md">
+<span class="material-symbols-outlined text-[24px]">church</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary mb-space-xs">Misa de Acción de Gracias</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-space-xs">Ceremonia Religiosa</h2>
+<div class="inline-flex items-center gap-1.5 px-space-md py-1 rounded-full bg-surface-container-lowest text-primary font-label-md text-label-md mb-space-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]">access_time</span>
+<span>5:00 PM</span>
+</div>
+<h3 class="font-body-lg text-body-lg font-semibold text-on-surface mb-1">
+      Parroquia San Juan Bautista
+    </h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-space-lg leading-snug">
+      Av. Hidalgo 142, Centro Histórico, Coyoacán, CDMX
+    </p>
+<a class="w-full h-12 bg-primary text-on-primary rounded-full flex items-center justify-center gap-2 font-label-md text-label-md shadow-sm active:scale-98 transition-transform" href="https://maps.google.com" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">place</span>
+<span>Ver ubicación</span>
+</a>
+</section>
+<!-- 5. Bloque "Recepción" -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile shadow-sm flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-primary flex items-center justify-center mb-space-md">
+<span class="material-symbols-outlined text-[24px]">celebration</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary mb-space-xs">Gran Festejo</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-space-xs">Recepción</h2>
+<div class="inline-flex items-center gap-1.5 px-space-md py-1 rounded-full bg-surface-container-lowest text-primary font-label-md text-label-md mb-space-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]">access_time</span>
+<span>7:30 PM</span>
+</div>
+<h3 class="font-body-lg text-body-lg font-semibold text-on-surface mb-1">
+      Hacienda San José de las Palmas
+    </h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-space-lg leading-snug">
+      Calzada de los Leones 520, San Ángel, CDMX
+    </p>
+<a class="w-full h-12 bg-primary text-on-primary rounded-full flex items-center justify-center gap-2 font-label-md text-label-md shadow-sm active:scale-98 transition-transform" href="https://maps.google.com" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">place</span>
+<span>Ver ubicación</span>
+</a>
+</section>
+<!-- 6. Cronograma vertical -->
+<section class="bg-surface-container-lowest rounded-lg p-margin-mobile shadow-sm">
+<div class="text-center mb-space-lg">
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary">Itinerario</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">Momentos Mágicos</h2>
+</div>
+<div class="relative pl-6 space-y-space-lg">
+<!-- Continuous Delicate Line -->
+<div class="absolute left-2.5 top-3 bottom-3 w-[2px] bg-secondary-container"></div>
+<!-- Node 1 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary font-bold">5:00 PM</span>
+<p class="font-body-md text-body-md font-medium text-on-surface">Ceremonia de Acción de Gracias</p>
+</div>
+</div>
+<!-- Node 2 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary font-bold">7:00 PM</span>
+<p class="font-body-md text-body-md font-medium text-on-surface">Recepción y Cóctel de Bienvenida</p>
+</div>
+</div>
+<!-- Node 3 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-primary font-bold">8:30 PM</span>
+<p class="font-body-md text-body-md font-semibold text-primary">Entrada Triunfal y Vals Principal</p>
+</div>
+</div>
+<!-- Node 4 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary font-bold">9:30 PM</span>
+<p class="font-body-md text-body-md font-medium text-on-surface">Cena de Gala</p>
+</div>
+</div>
+<!-- Node 5 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary font-bold">10:45 PM</span>
+<p class="font-body-md text-body-md font-medium text-on-surface">Brindis y Apertura de Pista</p>
+</div>
+</div>
+<!-- Node 6 -->
+<div class="relative flex items-start gap-4">
+<div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary font-bold">1:00 AM</span>
+<p class="font-body-md text-body-md font-medium text-on-surface">Fin de la Celebración</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. Código de vestimenta -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile shadow-sm text-center">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-primary mx-auto flex items-center justify-center mb-space-md">
+<span class="material-symbols-outlined text-[24px]">styler</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary mb-space-xs">Protocolo</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-space-xs">Código de Vestimenta</h2>
+<p class="font-body-lg text-body-lg font-semibold text-tertiary mb-space-xs">
+      Rigurosa Etiqueta / Formal
+    </p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-space-md">
+      Vestido largo para damas y traje oscuro para caballeros.
+    </p>
+<!-- Warm Note Card -->
+<div class="bg-surface-container rounded-DEFAULT p-space-sm flex items-center gap-3 text-left">
+<span class="material-symbols-outlined text-secondary text-[22px] flex-shrink-0">spa</span>
+<p class="font-body-sm text-body-sm text-secondary leading-tight">
+        Reservamos con cariño los tonos verde salvia y esmeralda para la quinceañera.
+      </p>
+</div>
+</section>
+<!-- 8. Galería de cuatro fotografías -->
+<section class="flex flex-col items-center">
+<div class="text-center mb-space-md">
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary">Recuerdos</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">Galería</h2>
+</div>
+<div class="grid grid-cols-2 gap-gutter-mobile w-full">
+<div class="aspect-square rounded-DEFAULT overflow-hidden shadow-sm">
+<img alt="Detalle de retrato de quinceañera" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphCn5FcgUUIM1LxElLt5w96mcAbWhWc-r0yy5pHbgYFIP8IzIv_xaTRxg4eH5-BOTmyO2fZe_mEZP3tofoQMeb4ZAkF2GPlWd_vxS5s94UIlP-JYWQU1N1VZfgNdt0ywZ3n8Jok-1SjuH7Vvx6yWkrgGEeQO3kjyzHOi0984BkMtQm9NVYiQLCTXADRu8NDoU1RBtIzzjfh90wEE7HyuTFmGgVXsTvtAEZDAm97pXAhBhAnYXwdm0"/>
+</div>
+<div class="aspect-square rounded-DEFAULT overflow-hidden shadow-sm">
+<img alt="Detalle de ramo con eucalipto y rosas blancas" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHYGe5zYjD5gR-PqpHlkZ_O_WgaE1FDt3hATkTlJ-eJvK5M38a7rbsOsbe8-wTGVSfbswobOrKQaqhFE7KODR_gNdd8VghYgDAzeFc1uVX1svY8vgx6isXc0YA0zLj-V844l5xTjPIT0lmsLl9ZEk80rCPxqeJ_hUrLey_exu97EsOIrj-hWs3mbX7MDu0ooBf-XcaXYx1gRAiT-0TTn4wuPDphQFEDKRHhuKH7cjx9rpy45dlTniM"/>
+</div>
+<div class="aspect-square rounded-DEFAULT overflow-hidden shadow-sm">
+<img alt="Quinceañera caminando en jardín botánico" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnMexDebIi-35CcoqsIJGa1jjvG-89APQ3IRSbXR2V_dsZ7gedTM7K6n9y6D0m8Oh2tM_zDWZUYDPLUa7Bl3-fJeXb9-DFwDu7xTPlR_pWtvMwB2s9qjonPjDl6J0OPiWZZpP34_0fgWMZUFP1bgWKbE_oFm0Oc9HcAE3oqXIW_2v1IAyyfhHZt8P2wJ79ipnHo1_Wl6jwbMFiYEM9TiFi9sKdOlbDNjca3p4IinQUIdFiuFS2eLCh"/>
+</div>
+<div class="aspect-square rounded-DEFAULT overflow-hidden shadow-sm">
+<img alt="Detalle de peinado y tocado dorado" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByK2lvbmvC7Ec3UNinlNWnt30CWIZlykfmv5zAV1LwmceRqu2To2qGZW1Uun9pgZqUITa6-irUEkJNlFVxMECLd_GX8hoOIP7K4yOvuBiUQrn3mXLXFYO5yvlBYsopygTT98mtfAjiHEd6sOr1nK26UtiVzPkVRScMEkSt_KTKQPCpxuAwpGdv1xoyhoRnJnMH9YbffxTVYgZ62YkCqzM_Y2m5UJWO6wJcYc4ORFsl7PKFeOpC15FH"/>
+</div>
+</div>
+</section>
+<!-- 9. Sección de regalos (discreta y opcional) -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile shadow-sm text-center">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-primary mx-auto flex items-center justify-center mb-space-sm">
+<span class="material-symbols-outlined text-[20px]">featured_seasonal_and_gifts</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary mb-space-xs">Mesa de Regalos</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md max-w-[280px] mx-auto">
+      Su presencia y cariño son nuestro mayor regalo. Si desean tener un detalle con María Fernanda:
+    </p>
+<div class="space-y-space-xs">
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT flex items-center justify-between text-left shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">mail</span>
+<span class="font-body-md text-body-md font-medium text-on-surface">Lluvia de Sobres</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Recepción</span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded-DEFAULT flex items-center justify-between text-left shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">storefront</span>
+<span class="font-body-md text-body-md font-medium text-on-surface">Liverpool</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary font-bold">Evento #5092147</span>
+</div>
+</div>
+</section>
+<!-- 10. Módulo RSVP destacado -->
+<section class="bg-surface-container-low rounded-lg p-margin-mobile shadow-md relative overflow-hidden" id="rsvp-section">
+<div class="w-full text-center mb-space-md">
+<div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary text-on-primary mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">how_to_reg</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">Confirma tu Asistencia</h2>
+<p class="font-body-md text-body-md font-semibold text-tertiary mt-1">Familia Rodríguez</p>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-secondary">4 pases reservados</span>
+</div>
+<!-- Guest list with checkboxes -->
+<form class="space-y-space-sm mb-space-md" id="rsvp-form" onsubmit="event.preventDefault(); handleRSVP(true);">
+<label class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-DEFAULT cursor-pointer shadow-sm active:scale-[0.99] transition-transform">
+<span class="font-body-md text-body-md text-on-surface font-medium">Carlos Rodríguez</span>
+<input checked="" class="w-5 h-5 accent-primary cursor-pointer rounded" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-DEFAULT cursor-pointer shadow-sm active:scale-[0.99] transition-transform">
+<span class="font-body-md text-body-md text-on-surface font-medium">Sofía Mendoza</span>
+<input checked="" class="w-5 h-5 accent-primary cursor-pointer rounded" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-DEFAULT cursor-pointer shadow-sm active:scale-[0.99] transition-transform">
+<span class="font-body-md text-body-md text-on-surface font-medium">Mateo Rodríguez</span>
+<input checked="" class="w-5 h-5 accent-primary cursor-pointer rounded" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-DEFAULT cursor-pointer shadow-sm active:scale-[0.99] transition-transform">
+<span class="font-body-md text-body-md text-on-surface font-medium">Valentina Rodríguez</span>
+<input checked="" class="w-5 h-5 accent-primary cursor-pointer rounded" type="checkbox"/>
+</label>
+<!-- Informative Notice -->
+<div class="flex items-center gap-2 py-space-xs text-on-surface-variant justify-center">
+<span class="material-symbols-outlined text-[16px] text-secondary">info</span>
+<p class="font-body-sm text-body-sm">
+          La confirmación se puede enviar una sola vez.
+        </p>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-12 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform" id="rsvp-submit-btn" type="submit">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span>Confirmar asistencia</span>
+</button>
+<!-- Decline link -->
+<div class="text-center pt-space-xs">
+<button class="font-body-sm text-body-sm text-secondary hover:text-primary underline underline-offset-4 active:opacity-75 transition-opacity" onclick="handleRSVP(false)" type="button">
+          No podré asistir
+        </button>
+</div>
+</form>
+<!-- Confirmation Toast State -->
+<div class="hidden text-center p-space-md bg-secondary-container text-on-secondary-container rounded-DEFAULT" id="rsvp-status-message">
+<span class="material-symbols-outlined text-[28px] mb-1">done_all</span>
+<p class="font-label-md text-label-md font-bold">¡Respuesta registrada!</p>
+<p class="font-body-sm text-body-sm mt-1">Gracias por compartir con nosotros este momento inolvidable.</p>
+</div>
+</section>
+<!-- 11. Pie de página breve y elegante -->
+<footer class="text-center space-y-space-xs pt-space-sm">
+<div class="flex justify-center items-center gap-2 text-secondary opacity-60 mb-space-xs">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"></path>
+</svg>
+</div>
+<p class="font-title-script text-title-script text-primary">
+      Con amor, María Fernanda &amp; Familia Rodríguez
+    </p>
+<p class="font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant">
+      Noviembre 2026 · Ciudad de México
+    </p>
+</footer>
+</div>
+<script>
+  function handleRSVP(isAttending) {
+    const form = document.getElementById('rsvp-form');
+    const statusMsg = document.getElementById('rsvp-status-message');
+    if (form && statusMsg) {
+      form.classList.add('hidden');
+      statusMsg.classList.remove('hidden');
+      if (!isAttending) {
+        statusMsg.innerHTML = `
+          <span class="material-symbols-outlined text-[28px] mb-1">sentiment_satisfied</span>
+          <p class="font-label-md text-label-md font-bold">Respuesta registrada</p>
+          <p class="font-body-sm text-body-sm mt-1">Lamentamos que no puedas acompañarnos, ¡recibimos tu cariño con gratitud!</p>
+        `;
+      }
+    }
+  }
+
+  // Interactive subtle countdown incrementer for lively delight
+  let sec = 45;
+  setInterval(() => {
+    sec--;
+    if (sec < 0) sec = 59;
+    const secEl = document.getElementById('countdown-seconds');
+    if (secEl) {
+      secEl.textContent = sec < 10 ? '0' + sec : sec;
+    }
+  }, 1000);
+</script></main></body></html>
