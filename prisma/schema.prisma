@@ -5,11 +5,164 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Organizador que administra el evento desde el panel privado.
+// Un solo usuario por evento en esta versión, pero se modela la
+// relación desde ya para no reescribir el sistema de acceso después.
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  nombre    String?
+  eventos   Evento[]
+  creadoEn  DateTime @default(now())
+}
+
+// Plantillas disponibles. Se construyen como componentes propios
+// (no un editor visual) que reciben los mismos datos del Evento.
+enum Plantilla {
+  ELEGANTE_EUCALIPTO
+  CLASICA_DORADA
+  PASTEL_ROMANTICA
+  MODERNA_MINIMAL
+}
+
+model Evento {
+  id                String       @id @default(cuid())
+  usuarioId         String
+  usuario           Usuario      @relation(fields: [usuarioId], references: [id])
+
+  plantilla         Plantilla    @default(ELEGANTE_EUCALIPTO)
+
+  nombreQuinceanera String
+  nombrePadre       String?
+  nombreMadre       String?
+  nombrePadrinos    String?      // opcional, texto libre por ahora
+
+  fecha             DateTime
+  fechaLimiteRsvp   DateTime?    // fecha límite de respuesta, solo informativa
+
+  // Ceremonia religiosa (opcional)
+  tieneMisa         Boolean      @default(false)
+  misaLugar         String?
+  misaDireccion     String?
+  misaHora          String?
+
+  // Recepción
+  recepcionLugar     String
+  recepcionDireccion String
+  recepcionHora      String
+
+  codigoVestimenta  String?
+  infoAdicional     String?      // ej. "no se admiten niños", estacionamiento, etc.
+
+  fotoPrincipalUrl  String?      // foto de portada de la invitación
+
+  cronograma        MomentoEvento[]
+  fotosGaleria      FotoGaleria[]
+  infoRegalos       InfoRegalos?
+  invitaciones      Invitacion[]
+
+  creadoEn          DateTime     @default(now())
+  actualizadoEn     DateTime     @updatedAt
+}
+
+// Línea de tiempo del evento (ej. "18:00 Ceremonia", "21:00 Celebración").
+model MomentoEvento {
+  id        String   @id @default(cuid())
+  eventoId  String
+  evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  hora      String   // texto libre, ej. "21:00 HRS"
+  titulo    String   // ej. "Celebración", "A bailar"
+  icono     String?  // referencia a un ícono predefinido (no subida libre de íconos)
+  orden     Int      @default(0)
+
+  @@index([eventoId])
+}
+
+// Fotos de la galería (mínimo 4 recomendadas, sin límite duro por ahora).
+model FotoGaleria {
+  id        String   @id @default(cuid())
+  eventoId  String
+  evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  url       String
+  orden     Int      @default(0)
+
+  @@index([eventoId])
+}
+
+// Sección de regalos (opcional, editable desde el panel).
+// Texto libre para que el organizador decida qué tan detallado ser
+// (cuenta bancaria, links de mesas de regalo, número de evento, etc.)
+model InfoRegalos {
+  id                String            @id @default(cuid())
+  eventoId          String            @unique
+  evento            Evento            @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  mostrar           Boolean           @default(false)
+  mensaje           String?           // ej. "El regalo es opcional..."
+  datosBancarios    String?           // texto libre: banco, titular, cuenta/CLABE
+  numeroEvento      String?
+
+  mesasRegalo       MesaRegalo[]      // uno o varios links externos
+
+  actualizadoEn     DateTime          @updatedAt
+}
+
+// Un link de mesa de regalos por tienda (Amazon, Mercado Libre, Liverpool, etc.)
+model MesaRegalo {
+  id            String       @id @default(cuid())
+  infoRegalosId String
+  infoRegalos   InfoRegalos  @relation(fields: [infoRegalosId], references: [id], onDelete: Cascade)
+
+  tienda        String       // ej. "Amazon", "Mercado Libre", "Liverpool"
+  url           String
+  orden         Int          @default(0)
+
+  @@index([infoRegalosId])
+}
+
+model Invitacion {
+  id          String    @id @default(cuid())
+  eventoId    String
+  evento      Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  titulo      String    // "Familia Rodríguez" o "Juan Rodríguez"
+  token       String    @unique @default(cuid()) // largo y aleatorio: es la autenticación del invitado
+
+  respondida  Boolean   @default(false)
+  respondidaEn DateTime?
+
+  enviadaEn   DateTime? // se marca cuando el organizador copia/envía el link
+
+  personas    Persona[]
+
+  creadaEn    DateTime  @default(now())
+  actualizadaEn DateTime @updatedAt
+
+  @@index([eventoId])
+}
+
+model Persona {
+  id            String      @id @default(cuid())
+  invitacionId  String
+  invitacion    Invitacion  @relation(fields: [invitacionId], references: [id], onDelete: Cascade)
+
+  nombre        String
+
+  // null = invitación aún no respondida.
+  // true/false = fijado permanentemente al momento del RSVP.
+  asiste        Boolean?
+
+  @@index([invitacionId])
 }
