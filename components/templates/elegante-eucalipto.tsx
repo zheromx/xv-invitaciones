@@ -11,9 +11,13 @@ import { FooterBotanico } from "@/components/invitacion/footer-botanico";
 export function EleganteEucalipto({
   evento,
   invitacion,
+  demostracion = false,
+  token,
 }: {
   evento: DatosEvento;
   invitacion: InvitacionDemo;
+  demostracion?: boolean;
+  token?: string;
 }) {
   return (
     <div className="min-h-full bg-marfil">
@@ -24,7 +28,12 @@ export function EleganteEucalipto({
         <CuentaRegresiva evento={evento} />
         <Cronograma evento={evento} />
         <Galeria evento={evento} />
-        <Rsvp evento={evento} invitacion={invitacion} />
+        <Rsvp
+          evento={evento}
+          invitacion={invitacion}
+          demostracion={demostracion}
+          token={token}
+        />
         <FooterBotanico evento={evento} />
       </main>
     </div>

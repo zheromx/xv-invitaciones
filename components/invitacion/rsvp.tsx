@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { DatosEvento, InvitacionDemo } from "@/lib/evento";
 import { formatearFechaCorta } from "@/lib/evento";
+import { RsvpFormulario } from "@/components/invitacion/rsvp-formulario";
 
 function iniciales(nombre: string) {
   return nombre
@@ -34,26 +35,29 @@ function SinResponder({ invitacion }: { invitacion: InvitacionDemo }) {
         {invitacion.personas.length} pases reservados
       </p>
       <ul className="mt-4 space-y-2 text-left">
-        {invitacion.personas.map((persona) => (
-          <li
-            key={persona.nombre}
-            className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
-          >
-            <span className="text-sm font-medium text-zinc-800">
-              {persona.nombre}
-            </span>
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded ${
-                persona.asiste
-                  ? "bg-eucalipto-700 text-white"
-                  : "border border-zinc-300"
-              }`}
-              aria-hidden="true"
+        {invitacion.personas.map((persona) => {
+          const marcado = persona.asiste ?? true;
+          return (
+            <li
+              key={persona.id}
+              className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
             >
-              {persona.asiste && <Check className="h-3.5 w-3.5" />}
-            </span>
-          </li>
-        ))}
+              <span className="text-sm font-medium text-zinc-800">
+                {persona.nombre}
+              </span>
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded ${
+                  marcado
+                    ? "bg-eucalipto-700 text-white"
+                    : "border border-zinc-300"
+                }`}
+                aria-hidden="true"
+              >
+                {marcado && <Check className="h-3.5 w-3.5" />}
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
         <Info className="h-3.5 w-3.5 text-eucalipto-600" />
@@ -101,20 +105,22 @@ function Confirmada({
         </div>
       </div>
       <ul className="mt-4 space-y-2 text-left">
-        {invitacion.personas.map((persona) => (
-          <li
-            key={persona.nombre}
-            className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-marfil-osc text-[11px] font-semibold text-eucalipto-700">
-                {iniciales(persona.nombre)}
-              </span>
-              <span className="text-sm font-medium text-zinc-800">
-                {persona.nombre}
-              </span>
-            </div>
-            {persona.asiste ? (
+        {invitacion.personas.map((persona) => {
+          const asiste = persona.asiste ?? false;
+          return (
+            <li
+              key={persona.id}
+              className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-marfil-osc text-[11px] font-semibold text-eucalipto-700">
+                  {iniciales(persona.nombre)}
+                </span>
+                <span className="text-sm font-medium text-zinc-800">
+                  {persona.nombre}
+                </span>
+              </div>
+              {asiste ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-eucalipto-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-eucalipto-700">
                 <Check className="h-3 w-3" />
                 Asistirá
@@ -125,7 +131,8 @@ function Confirmada({
               </span>
             )}
           </li>
-        ))}
+          );
+        })}
       </ul>
       <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
         <Lock className="h-3.5 w-3.5 text-eucalipto-600" />
@@ -138,15 +145,22 @@ function Confirmada({
 export function Rsvp({
   evento,
   invitacion,
+  demostracion = false,
+  token,
 }: {
   evento: DatosEvento;
   invitacion: InvitacionDemo;
+  demostracion?: boolean;
+  token?: string;
 }) {
+  const interactivo = !demostracion && Boolean(token) && !invitacion.respondida;
   return (
     <section className="px-5">
       <div className="rounded-2xl border border-dorado/25 bg-marfil-osc px-5 py-6 text-center">
         {invitacion.respondida ? (
           <Confirmada invitacion={invitacion} />
+        ) : interactivo && token ? (
+          <RsvpFormulario token={token} personas={invitacion.personas} />
         ) : (
           <SinResponder invitacion={invitacion} />
         )}
@@ -156,9 +170,12 @@ export function Rsvp({
           </p>
         )}
       </div>
-      <p className="px-5 pt-3 text-center text-[10px] leading-4 text-zinc-400">
-        Vista de demostración: esta confirmación no se guarda en ningún lugar.
-      </p>
+      {demostracion && (
+        <p className="px-5 pt-3 text-center text-[10px] leading-4 text-zinc-400">
+          Vista de demostración: esta confirmación no se guarda en ningún
+          lugar.
+        </p>
+      )}
     </section>
   );
 }

@@ -30,8 +30,9 @@ export type DatosEvento = {
 };
 
 export type PersonaDemo = {
+  id: string;
   nombre: string;
-  asiste: boolean;
+  asiste: boolean | null;
 };
 
 export type InvitacionDemo = {

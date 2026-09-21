@@ -20,6 +20,21 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Seed de desarrollo
+
+Pobla la base de datos con un usuario, un evento y dos invitaciones de prueba (idempotente, se puede ejecutar varias veces sin duplicar registros):
+
+```bash
+npx prisma db seed
+```
+
+Tokens públicos de prueba (la ruta real usa `Invitacion.token`):
+
+- Sin responder: `/invitacion/dev-familia-lopez-sin-responder-2026`
+- Respondida: `/invitacion/dev-familia-martinez-respondida-2026`
+
+El usuario de desarrollo usa el correo ficticio `desarrollo@invitaciones.local` y una contraseña temporal; al integrar Auth.js se sustituirá por un hash seguro.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

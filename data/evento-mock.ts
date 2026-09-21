@@ -34,9 +34,9 @@ export const invitacionDemo: InvitacionDemo = {
   titulo: "Familia García",
   respondida: false,
   personas: [
-    { nombre: "María García", asiste: true },
-    { nombre: "Jorge García", asiste: true },
-    { nombre: "Laura García", asiste: false },
-    { nombre: "Luis García", asiste: true },
+    { id: "persona-1", nombre: "María García", asiste: true },
+    { id: "persona-2", nombre: "Jorge García", asiste: true },
+    { id: "persona-3", nombre: "Laura García", asiste: false },
+    { id: "persona-4", nombre: "Luis García", asiste: true },
   ],
 };
