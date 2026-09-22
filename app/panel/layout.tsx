@@ -14,9 +14,22 @@ export default async function PanelLayout({
     <div className="min-h-full">
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-          <p className="font-serif text-lg text-eucalipto-700">
-            Panel del organizador
-          </p>
+          <div className="flex items-center gap-6">
+            <p className="font-serif text-lg text-eucalipto-700">
+              Panel del organizador
+            </p>
+            <nav className="flex items-center gap-4 text-sm">
+              <a href="/panel" className="font-medium text-zinc-600 hover:text-eucalipto-700">
+                Resumen
+              </a>
+              <a
+                href="/panel/invitaciones"
+                className="font-medium text-zinc-600 hover:text-eucalipto-700"
+              >
+                Invitaciones
+              </a>
+            </nav>
+          </div>
           <div className="flex items-center gap-3">
             <div className="text-right leading-tight">
               <p className="text-xs font-medium text-zinc-800">

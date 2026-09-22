@@ -18,8 +18,14 @@ export default async function PanelPage() {
       </h1>
       <p className="mt-1 text-sm text-zinc-500">
         Este entregable aterriza la protección del panel y el login del
-        organizador. El CRUD de invitaciones y el dashboard con métricas llegan
-        en los siguientes pasos.
+        organizador, y el CRUD de invitaciones en{" "}
+        <a
+          href="/panel/invitaciones"
+          className="font-medium text-eucalipto-700 underline underline-offset-4"
+        >
+          Invitaciones
+        </a>
+        . El dashboard con métricas llega en los siguientes pasos.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">

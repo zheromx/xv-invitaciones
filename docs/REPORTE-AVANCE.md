@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `f0db387` · **Working tree:** contiene el entregable **Panel de administración + login Auth.js** verificado pero **sin commitear** — `git status` confirma cambios pendientes (dependencias `next-auth`/`bcryptjs`, `auth.ts`, `proxy.ts`, login/panel, seed con hash, `.env.example`)
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `a5754ad` · **Working tree:** cambios del entregable **CRUD de invitaciones + share wa.me** sin commitear (§10)
 
 ---
 
@@ -237,13 +237,56 @@ Login del organizador con **Auth.js v5** (Credenciales, sesión **JWT sin adapta
 
 ---
 
-## 10. Estado actual y pendientes
+## 10. CRUD de invitaciones desde el panel + compartir por WhatsApp
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt).
+Listado, creación, edición y borrado de invitaciones desde el panel, con token aleatorio server-side, URL pública estable y compartir por `wa.me` (sin API). Sigue el mismo patrón de arquitectura que el RSVP (núcleo transaccional puro + Server Action fina).
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `lib/invitaciones-panel.ts` | Helpers server: `obtenerEventoSegunSesion()` (auth → `Evento` del usuario), `detalleInvitacionParaEditar()` |
+| Creado | `lib/invitaciones-nucleo.ts` | Núcleo transaccional puro (testeable sin Next): `generarTokenInvitacion()`, `ejecutarCrear`, `ejecutarEditar`, `ejecutarBorrar` |
+| Creado | `lib/acciones-invitaciones.ts` | Server Actions `"use server"`: `crearInvitacion`, `editarInvitacion`, `borrarInvitacion` (validación runtime, sesión, `revalidatePath`) |
+| Creado | `lib/url-invitacion.ts` | `urlPublicaInvitacion(token)`: `NEXT_PUBLIC_SITE_URL` → fallback `headers()` (proto/host) → `localhost:3000` |
+| Creado | `app/panel/invitaciones/page.tsx` | Lista server (`force-dynamic`), ordena `creadaEn desc`, mapea filas con URL absoluta y fecha `Intl es-MX` |
+| Creado | `components/panel/lista-invitaciones.tsx` | Tabla cliente: búsqueda/filtro, badges, copiar link (clipboard + toast), WhatsApp, eliminar en fila expandida con confirmación (reforzada si respondida), `Editar` con candado si respondida |
+| Creado | `components/panel/confirmacion-borrado.tsx` | Confirmación de eliminación compartida (tabla y detalle): variante estándar y reforzada (respondida requiere escribir `ELIMINAR`), accesible (Escape, `role="alert"`, estado destructivo) |
+| Creado | `components/panel/formulario-invitacion.tsx` | Formulario crear/editar/solo-lectura: filas de personas dinámicas, `useActionState`, banner de solo lectura, zona de eliminación administrativa |
+| Creado | `app/panel/invitaciones/nueva/page.tsx` · `[id]/editar/page.tsx` | Rutas de creación y edición |
+| Modificado | `app/panel/layout.tsx` (nav), `app/panel/page.tsx` (copy), `.env.example` (`NEXT_PUBLIC_SITE_URL`), `README.md` | Documentación y navegación |
+
+### 10.1 Contratos y decisiones de seguridad
+
+- El navegador envía **solo** `Invitacion.id` (cuid); el `eventoId` autorizado se deriva de `session.user.id → Evento.usuarioId` (nunca del request).
+- Token: `randomBytes(24).toString("base64url")` (≥30 chars, solo `[A-Za-z0-9_-]`), generado y guardado **solo en servidor**; reintento de inserción ante colisión `P2002` (5 intentos). Editar **nunca** regenera el token → la URL pública queda estable.
+- `respondida = true` → **solo lectura para edición**: la página de edición se renderiza sin inputs (banner) y el servidor devuelve `ya-respondida` ante `editar`. La edición (título, personas, token, `respondida`, `respondidaEn`, `asiste`) queda bloqueada permanentemente.
+- Borrar, en cambio, es la **única corrección administrativa** permitida también sobre invitaciones respondidas: el organizador autenticado puede eliminarlas **solo si pertenecen a su `Evento`** (derivado de la sesión, nunca del request). Si necesita reemplazarla, se crea una invitación nueva con un token nuevo.
+- Confirmación de borrado **inline** (sin modales), en una fila expandida de la tabla y en la zona de eliminación del detalle. Para invitaciones **sin responder**: confirmación estándar que identifica el título. Para **respondidas**: confirmación reforzada — advertencia de eliminación permanente de la invitación y del RSVP registrado, título + cantidad de personas (y cuántas confirmadas), y se exige escribir exactamente `ELIMINAR` para habilitar el botón destructivo. Cancelar o escribir otra cosa no borra nada.
+- Edición transaccional: valida `eventoId`, bloquea respondidas, comprueba que cada `persona_id` pertenezca a la invitación, rechaza id conservadas y eliminadas a la vez (`no-autorizado`), inserta/actualiza/elimina personas en la misma transacción.
+- Límites runtime de la capa de acción: título ≤ 120 chars, 1–25 personas, nombres trim + dedupe case-insensitive.
+- `borrarInvitacion` se invoca como función (no como form action); `editar`/`crear` usan `useActionState`.
+- Compartir WhatsApp: `https://wa.me/?text=` con mensaje prellenado que incluye la URL absoluta del token (`¡Hola {titulo}! Están invitados… Confirmen su asistencia aquí: {url}`), abre en `_blank`. Sin API de Meta.
+- Origen del enlace: `NEXT_PUBLIC_SITE_URL` (documentada en `.env.example`, sin barra final); sin la variable, fallback a `x-forwarded-proto`/`x-forwarded-host` (dev: `http://localhost:3000`).
+
+### 10.2 Verificaciones
+
+| Comando | Resultado |
+|---|---|
+| `git diff --check` | Sin errores de whitespace |
+| `npm run lint` | 0 errores |
+| `npx tsc --noEmit` | 0 errores (incluyó fix de `headers()` async en Next 16 y tipado de `useActionState`) |
+| `npm run build` | Compilado OK; `/panel/invitaciones*`, `nueva`, `[id]/editar` dinámicas; proxy activo sobre `/panel/:path*` |
+| `npx prisma db seed` | Idempotente (estado base restaurado antes de checks) |
+| Checks de núcleo (script temporal, eliminado) | **24/24 PASS** (CRUD v1): crear+tokens, editar sin cambiar token, renombrado/agregar/quitar personas, respondida bloqueada ante edición sin mutación, id de otra invitación y otro evento → `no-autorizado`, borrado/ajena/inexistente, cascade |
+| Checks de nueva política de borrado (script temporal, eliminado) | **15/15 PASS**: crear fixture respondida; borrar respondida ajena → `no-autorizado` (existe, sin fuga); inexistente → `no-encontrada`; editar respondida sigue `ya-respondida` y no muta; borrar respondida propia → OK con cascade y token sin resolver en BD; borrar sin confirmar → OK; crear→borrar OK |
+| Runtime (`next start`, sesión real por login + cookies) | `/panel/invitaciones` autenticada 200 con filas, URLs absolutas `http://localhost:3000/invitacion/dev-*`, papelera visible en filas respondidas y no respondidas (`aria-controls="confirmar-borrado-…"`); detalle respondida → solo lectura + zona de eliminación sin `Guardar cambios`; sin sesión lista y editar → 302 `/login`; públicas 200/200/404/200; **token de invitación respondida borrada: 200 antes → 404 después** |
+
+---
+
+## 11. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10).
 
 **Pendiente:**
-- CRUD de invitaciones (crear, editar, borrar, copiar link) desde el panel.
-- Compartir link por WhatsApp (`wa.me`).
 - Dashboard de conteo (respondidas, personas confirmadas).
 - Configuración/datos editables del evento desde el panel (quinceañera, padres, fechas y lugares de misa/recepción, cronograma, galería, código de vestimenta, regalos).
 - Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).

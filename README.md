@@ -55,6 +55,23 @@ npm run dev
 
 Las rutas públicas (`/`, `/login`, `/invitacion/demo`, `/invitacion/[token]`) no requieren sesión.
 
+## CRUD de invitaciones desde el panel
+
+Área privada para gestionar las invitaciones (≈300 asistentes) y compartir sus enlaces:
+
+- `/panel/invitaciones` — listado con búsqueda y filtro por estado, botones para ver el enlace público, editar, copiar, compartir por WhatsApp y borrar.
+- `/panel/invitaciones/nueva` — crear una invitación: título + lista de personas (mínimo 1).
+- `/panel/invitaciones/[id]/editar` — editar título y personas. Si la invitación ya fue confirmada por el invitado, queda en **solo lectura** (no se edita ni borra).
+
+Decisiones de seguridad y negocio:
+
+- El token es criptográficamente aleatorio (64 caracteres `base64url`, generado en servidor) y nunca se deriva del título ni de los nombres.
+- Todas las acciones resuelven el evento autorizado desde `session.user.id → Evento.usuarioId`; el navegador solo envía el `Invitacion.id`.
+- Crear/editar/borrar no tocan `respondida`, `respondidaEn`, `asiste` ni `enviadaEn`.
+- El enlace público es absoluto y se arma con `NEXT_PUBLIC_SITE_URL` si está definida; si no, se infiere de los headers de la petición (funciona en Vercel y localhost).
+- El borrado requiere confirmación explícita en la UI y está prohibido para invitaciones ya respondidas.
+- WhatsApp se comparte vía `wa.me` con texto prellenado (sin API de Meta).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
