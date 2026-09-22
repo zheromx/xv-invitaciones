@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `5d768e2` · **Working tree:** limpio
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `5d768e2` · **Working tree:** cambios sin commit — entregable **Dashboard de conteo** (`app/panel/page.tsx` modificado, `lib/dashboard-panel.ts` nuevo, `docs/REPORTE-AVANCE.md` actualizado)
 
 ---
 
@@ -9,7 +9,7 @@
 Producto propio para crear, gestionar y confirmar invitaciones digitales de XV años, validado con un evento real de ~300 asistentes (inicios de noviembre, envío con ~1 mes de anticipación).
 
 - **Dominio fijo (AGENTS.md/ALCANCE.md):** la unidad central es la **Invitación** (no el invitado), con token único como autenticación; RSVP **una sola vez**; `asiste` por persona se fija al confirmar; sin vencimiento automático.
-- **Stack:** Next.js (App Router) · PostgreSQL + Prisma · Tailwind v4 · shadcn/ui · NextAuth (pendiente) · Vercel.
+- **Stack:** Next.js (App Router) · PostgreSQL + Prisma · Tailwind v4 · shadcn/ui · Auth.js/NextAuth (implementado) · Vercel.
 - **Fuera de alcance v1:** envío masivo de WhatsApp, QR, mesas, editor visual de plantillas, padrinos, libro de deseos, multi-evento.
 
 ---
@@ -121,7 +121,7 @@ Conexión real del template a la base de datos, sin tocar la plantilla ni la dem
 | Modificado | `package.json` | `"prisma": { "seed": "tsx prisma/seed.ts" }` |
 | Modificado | `README.md` | Sección "Seed de desarrollo" |
 
-- Datos dev: usuario `desarrollo@invitaciones.local` (contraseña temporal con TODO para hashear con Auth.js), evento con fecha inicios de noviembre.
+- Datos dev: usuario `desarrollo@invitaciones.local` (contraseña dev hasheada con **bcryptjs** vía `hashContrasena`; ya no hay contraseña plana ni TODO de hash), evento con fecha inicios de noviembre.
 - Incentiva de prueba:
   - `/invitacion/dev-familia-lopez-sin-responder-2026` → `respondida=false`, 3 personas `asiste=null`.
   - `/invitacion/dev-familia-martinez-respondida-2026` → `respondida=true`, personas `asiste=true/true/false`.
@@ -292,12 +292,30 @@ Listado, creación, edición y borrado de invitaciones desde el panel, con token
 
 ---
 
-## 11. Estado actual y pendientes
+## 11. Dashboard de conteo
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10).
+Métricas agregadas de confirmación en `/panel`, con la identidad visual actual del panel y estructura inspirada en `design/01-panel-dashboard.html`.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `lib/dashboard-panel.ts` | `obtenerMetricasDashboard()` (auth → `Evento` de la sesión) + `obtenerMetricasDeEvento(eventoId)` (agregaciones `groupBy`) |
+| Modificado | `app/panel/page.tsx` | Dashboard de solo lectura: 5 tarjetas de métricas + nota contextual de personas en invitaciones sin responder |
+
+- **Ruta:** `/panel` (server-rendered, `force-dynamic`).
+- **Métricas:** invitaciones totales, respondidas y sin responder; personas confirmadas (`asiste=true`) y declinadas (`asiste=false`); y **"Personas en invitaciones sin responder"** para `asiste=null` (dato contextual, no un estado individual pendiente).
+- **Autorización:** `Evento` derivado **server-side** de `session.user.id → Evento.usuarioId`; el navegador no envía ni puede fijar `eventoId`/`usuarioId`.
+- **Implementación:** `groupBy` sobre `Invitacion.respondida` y `Persona.asiste` (`_count._all`), sin cargar colecciones completas.
+- **UI:** estructura de 5 tarjetas equivalente a `design/01-panel-dashboard.html`, manteniendo la identidad actual del panel (tokens `eucalipto`/`zinc`, `font-serif`), sin tema paralelo.
+- **Alcance:** dashboard de **solo lectura**; no altera RSVP, CRUD, tokens, Auth.js, rutas públicas, schema ni seed.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores; validación manual contra el estado canónico del seed **2/1/1/2/1/3** (2 invitaciones · 1 respondida · 1 sin responder · 2 confirmadas · 1 declinada · 3 personas en invitaciones sin responder).
+
+---
+
+## 12. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11.
 
 **Pendiente:**
-- Dashboard de conteo (respondidas, personas confirmadas).
 - Configuración/datos editables del evento desde el panel (quinceañera, padres, fechas y lugares de misa/recepción, cronograma, galería, código de vestimenta, regalos).
 - Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
 - Sección de regalos (opcional, activable desde el panel).
