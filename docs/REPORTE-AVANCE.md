@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `5d768e2` · **Working tree:** cambios sin commit — entregable **Dashboard de conteo** (`app/panel/page.tsx` modificado, `lib/dashboard-panel.ts` nuevo, `docs/REPORTE-AVANCE.md` actualizado)
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `86cad6e` · **Working tree:** limpio (entregable **Dashboard de conteo** comiteado)
 
 ---
 
@@ -308,6 +308,16 @@ Métricas agregadas de confirmación en `/panel`, con la identidad visual actual
 - **UI:** estructura de 5 tarjetas equivalente a `design/01-panel-dashboard.html`, manteniendo la identidad actual del panel (tokens `eucalipto`/`zinc`, `font-serif`), sin tema paralelo.
 - **Alcance:** dashboard de **solo lectura**; no altera RSVP, CRUD, tokens, Auth.js, rutas públicas, schema ni seed.
 - **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` sin errores; validación manual contra el estado canónico del seed **2/1/1/2/1/3** (2 invitaciones · 1 respondida · 1 sin responder · 2 confirmadas · 1 declinada · 3 personas en invitaciones sin responder).
+
+### 11.1 Registro del commit
+
+| Campo | Valor |
+|---|---|
+| Commit | `86cad6e` |
+| Mensaje | `feat: add invitation response dashboard` |
+| Fecha | 21 de septiembre de 2026 (sobre `5d768e2`) |
+| Contenido | `lib/dashboard-panel.ts` (nuevo), `app/panel/page.tsx` (dashboard de conteo) y `docs/REPORTE-AVANCE.md` (§11) |
+| Estado | Comiteado; working tree limpio tras el commit del entregable y la actualización de este reporte |
 
 ---
 
