@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `a5754ad` · **Working tree:** cambios del entregable **CRUD de invitaciones + share wa.me** sin commitear (§10)
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `5d768e2` · **Working tree:** limpio
 
 ---
 
@@ -279,6 +279,16 @@ Listado, creación, edición y borrado de invitaciones desde el panel, con token
 | Checks de núcleo (script temporal, eliminado) | **24/24 PASS** (CRUD v1): crear+tokens, editar sin cambiar token, renombrado/agregar/quitar personas, respondida bloqueada ante edición sin mutación, id de otra invitación y otro evento → `no-autorizado`, borrado/ajena/inexistente, cascade |
 | Checks de nueva política de borrado (script temporal, eliminado) | **15/15 PASS**: crear fixture respondida; borrar respondida ajena → `no-autorizado` (existe, sin fuga); inexistente → `no-encontrada`; editar respondida sigue `ya-respondida` y no muta; borrar respondida propia → OK con cascade y token sin resolver en BD; borrar sin confirmar → OK; crear→borrar OK |
 | Runtime (`next start`, sesión real por login + cookies) | `/panel/invitaciones` autenticada 200 con filas, URLs absolutas `http://localhost:3000/invitacion/dev-*`, papelera visible en filas respondidas y no respondidas (`aria-controls="confirmar-borrado-…"`); detalle respondida → solo lectura + zona de eliminación sin `Guardar cambios`; sin sesión lista y editar → 302 `/login`; públicas 200/200/404/200; **token de invitación respondida borrada: 200 antes → 404 después** |
+
+### 10.3 Registro del commit
+
+| Campo | Valor |
+|---|---|
+| Commit | `5d768e2` |
+| Mensaje | `feat: CRUD de invitaciones desde el panel + compartir WhatsApp (politica de borrado con confirmacion reforzada)` |
+| Fecha | 21 de septiembre de 2026 (sobre `a5754ad`) |
+| Contenido | §10 completo: CRUD (lista/crear/editar/eliminar), token server-side, solo lectura para edición, política de borrado administrativo con confirmación reforzada, share WhatsApp, chequeos de núcleo y rutas runtime |
+| Estado | Working tree **limpio** tras este commit y el submódulo de documentación del reporte |
 
 ---
 
