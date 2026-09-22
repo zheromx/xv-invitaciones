@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `9cc7819` — `docs: update progress report` · **Working tree:** cambios sin commit — **Regalos + mesas de regalo**
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `40b99fc` — `feat: add gift registry section` · **Working tree:** limpio
 
 ---
 
