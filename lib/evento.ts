@@ -10,6 +10,21 @@ export type FotoGaleria = {
   orden: number;
 };
 
+export type MesaRegaloVista = {
+  id: string;
+  tienda: string;
+  url: string;
+  orden: number;
+};
+
+export type RegalosVista = {
+  mostrar: boolean;
+  mensaje: string | null;
+  datosBancarios: string | null;
+  numeroEvento: string | null;
+  mesas: MesaRegaloVista[];
+};
+
 export type DatosEvento = {
   nombreQuinceanera: string;
   nombrePadre: string | null;
@@ -28,7 +43,34 @@ export type DatosEvento = {
   infoAdicional: string | null;
   cronograma: MomentoEvento[];
   galeria: FotoGaleria[];
+  infoRegalos?: RegalosVista | null;
 };
+
+// Mapeo compartido de InfoRegalos (+ mesas) al tipo de vista, reutilizado por
+// la ruta pública y la vista previa.
+export function mapearRegalos(
+  info: {
+    mostrar: boolean;
+    mensaje: string | null;
+    datosBancarios: string | null;
+    numeroEvento: string | null;
+    mesasRegalo: { id: string; tienda: string; url: string; orden: number }[];
+  } | null
+): RegalosVista | null {
+  if (!info) return null;
+  return {
+    mostrar: info.mostrar,
+    mensaje: info.mensaje,
+    datosBancarios: info.datosBancarios,
+    numeroEvento: info.numeroEvento,
+    mesas: info.mesasRegalo.map((mesa) => ({
+      id: mesa.id,
+      tienda: mesa.tienda,
+      url: mesa.url,
+      orden: mesa.orden,
+    })),
+  };
+}
 
 export type PersonaDemo = {
   id: string;

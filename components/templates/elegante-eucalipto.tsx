@@ -5,6 +5,7 @@ import { DetallesEvento } from "@/components/invitacion/detalles-evento";
 import { CuentaRegresiva } from "@/components/invitacion/cuenta-regresiva";
 import { Cronograma } from "@/components/invitacion/cronograma";
 import { Galeria } from "@/components/invitacion/galeria";
+import { Regalos } from "@/components/invitacion/regalos";
 import { Rsvp } from "@/components/invitacion/rsvp";
 import { FooterBotanico } from "@/components/invitacion/footer-botanico";
 
@@ -28,6 +29,7 @@ export function EleganteEucalipto({
         <CuentaRegresiva evento={evento} />
         <Cronograma evento={evento} />
         <Galeria evento={evento} />
+        <Regalos evento={evento} />
         <Rsvp
           evento={evento}
           invitacion={invitacion}

@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `bca6ef5` — `feat: add event image uploads with UploadThing` · **Working tree:** limpio
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `9cc7819` — `docs: update progress report` · **Working tree:** cambios sin commit — **Regalos + mesas de regalo**
 
 ---
 
@@ -393,12 +393,33 @@ Subida real de imágenes con **UploadThing v7** (`uploadthing@7.7.4` + `@uploadt
 
 ---
 
-## 14. Estado actual y pendientes
+## 14. Regalos y mesas de regalo
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12 · **Foto principal + galería editable** con **UploadThing v7** (1 principal, máx 6 en galería con orden y borrado físico) y **galería pública 2×3** — §13.
+Sección opcional controlada por `InfoRegalos.mostrar`, con mensaje libre, datos bancarios (texto libre) y hasta cinco mesas de regalo (tienda + URL externa), ordenables. Bloque y mutación **separados** de la configuración base del Evento.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `lib/regalos-validacion.ts` | Validación runtime pura + `urlHttpsValida` (https + hostname). Límites: mensaje 1000, datos 2000, número 200, mesas 5, tienda 100, url 2000 |
+| Creado | `lib/regalos-nucleo.ts` | Núcleo transaccional (testeable sin Next): upsert de `InfoRegalos` + sincronización de `MesaRegalo` (crear/editar/eliminar, orden `0..n-1`) |
+| Creado | `lib/acciones-regalos.ts` | Server Action fina `actualizarRegalos` (auth → validación → núcleo → `revalidatePath`) |
+| Creado | `components/panel/regalos-evento.tsx` | Bloque "8. Regalos" del panel: switch, campos y lista dinámica (máx 5) con Agregar/Eliminar/Subir/Bajar |
+| Creado | `components/invitacion/regalos.tsx` | Sección pública reutilizable (entre Galería y RSVP) |
+| Modificado | `lib/evento.ts`, `lib/invitacion.ts`, `lib/evento-panel.ts`, `components/templates/elegante-eucalipto.tsx`, `app/panel/configuracion/page.tsx` | Tipos/mappers (`infoRegalos`), helper `obtenerRegalosEventoSesion`, inserción en la plantilla y bloque en la página |
+
+- **Visibilidad:** la sección pública (y la preview, que reutiliza la misma plantilla) solo se renderiza si `mostrar === true` y hay contenido útil; con `mostrar=false` los datos se **conservan** pero no se muestran.
+- **Contenido útil:** al activar, se exige al menos uno: mensaje, datos bancarios, número de evento o una mesa válida.
+- **Validación (guardar y leer):** cada mesa requiere tienda y URL **https:// con hostname**; se rechazan `http`, `javascript:`, `data:`, URLs malformadas y sin host; máximo 5 mesas; filas vacías se ignoran y filas parciales se rechazan; ids duplicados rechazados. `urlHttpsValida` se aplica también en el render público (datos históricos nunca generan enlaces inseguros).
+- **Seguridad:** el navegador no envía `eventoId`/`usuarioId`/`infoRegalosId`; el Evento se deriva de la sesión y los `MesaRegalo.id` se validan por pertenencia dentro de la transacción (`no-autorizado` en caso contrario). Enlaces públicos con `target="_blank"` y `rel="noopener noreferrer"`.
+- **Alcance:** solo enlaces externos; **sin** pago, checkout, scraping, API de tiendas, seguimiento de aportaciones ni afiliados.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm run build` y `npx prisma db seed` en verde; **21/21** checks de validación/núcleo y **10/10** de runtime (scripts temporales eliminados): persistencia y orden, ocultar conserva datos, `mostrar=true` sin contenido → inválido sin mutación, URLs y filas parciales inválidas, reorden/edición/eliminación con ids preservados, mesa ajena → `no-autorizado` sin mutación, y `Evento`/`Invitacion`/`Persona`/RSVP intactos; runtime: pública muestra/oculta según `mostrar` con enlaces seguros, preview refleja regalos con RSVP inerte, panel sin sesión → `/login`, demo sin regalos.
+
+---
+
+## 15. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12 · **Foto principal + galería editable** con **UploadThing v7** (1 principal, máx 6 en galería con orden y borrado físico) y **galería pública 2×3** — §13 · **Regalos y mesas de regalo** (opcional con `mostrar`, mensaje, datos bancarios, número de evento y hasta 5 mesas con URL https:// y borrado/orden) — §14.
 
 **Pendiente:**
-- Sección de regalos (opcional, activable desde el panel).
 - Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
 - Revisión manual en viewport 375 px y pruebas con datos reales del cliente.
 - Las 11 pruebas manuales de RSVP del plan (todos/algunos/nadie, doble clic, dos pestañas, token inexistente, id ajeno, ya respondida, error de BD, recarga, demo inerte).

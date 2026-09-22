@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { DatosEvento, InvitacionDemo } from "@/lib/evento";
+import { mapearRegalos } from "@/lib/evento";
 
 export async function obtenerInvitacionPorToken(token: string) {
   const registro = await prisma.invitacion.findUnique({
@@ -46,6 +47,7 @@ export async function obtenerInvitacionPorToken(token: string) {
       url: foto.url,
       orden: foto.orden,
     })),
+    infoRegalos: mapearRegalos(registro.evento.infoRegalos),
   };
 
   const invitacion: InvitacionDemo = {

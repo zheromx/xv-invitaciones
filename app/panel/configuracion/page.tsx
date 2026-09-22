@@ -2,12 +2,14 @@ import { Eye } from "lucide-react";
 import {
   obtenerEventoConfiguracionSesion,
   obtenerImagenesEventoSesion,
+  obtenerRegalosEventoSesion,
 } from "@/lib/evento-panel";
 import {
   FormularioEvento,
   type ValoresInicialesEvento,
 } from "@/components/panel/formulario-evento";
 import { BloqueImagenes } from "@/components/panel/imagenes-evento";
+import { BloqueRegalos } from "@/components/panel/regalos-evento";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,7 @@ function aFechaDia(fecha: Date | null): string {
 export default async function PaginaConfiguracionEvento() {
   const evento = await obtenerEventoConfiguracionSesion();
   const imagenes = evento ? await obtenerImagenesEventoSesion() : null;
+  const regalos = evento ? await obtenerRegalosEventoSesion() : null;
   if (!evento) {
     return (
       <div className="space-y-6">
@@ -107,6 +110,21 @@ export default async function PaginaConfiguracionEvento() {
       <BloqueImagenes
         principalUrl={imagenes?.fotoPrincipalUrl ?? null}
         galeria={imagenes?.fotosGaleria ?? []}
+      />
+
+      <BloqueRegalos
+        inicial={{
+          mostrar: regalos?.mostrar ?? false,
+          mensaje: regalos?.mensaje ?? "",
+          datosBancarios: regalos?.datosBancarios ?? "",
+          numeroEvento: regalos?.numeroEvento ?? "",
+          mesas:
+            regalos?.mesasRegalo.map((mesa) => ({
+              id: mesa.id,
+              tienda: mesa.tienda,
+              url: mesa.url,
+            })) ?? [],
+        }}
       />
     </div>
   );

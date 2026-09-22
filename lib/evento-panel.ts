@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "./prisma";
 import type { DatosEvento, InvitacionDemo } from "./evento";
+import { mapearRegalos } from "./evento";
 
 // Devuelve el Evento autorizado derivado SIEMPRE de session.user.id →
 // Evento.usuarioId (nunca de un id recibido del navegador), con su cronograma
@@ -59,6 +60,33 @@ export async function obtenerImagenesEventoSesion() {
   });
 }
 
+// Regalos del Evento autorizado (InfoRegalos + mesas ordenadas). Derivados
+// server-side de la sesión; el cliente nunca envía eventoId/infoRegalosId.
+export async function obtenerRegalosEventoSesion() {
+  const sesion = await auth();
+  if (!sesion?.user) return null;
+
+  const evento = await prisma.evento.findFirst({
+    where: { usuarioId: sesion.user.id },
+    select: {
+      infoRegalos: {
+        select: {
+          mostrar: true,
+          mensaje: true,
+          datosBancarios: true,
+          numeroEvento: true,
+          mesasRegalo: {
+            orderBy: { orden: "asc" },
+            select: { id: true, tienda: true, url: true, orden: true },
+          },
+        },
+      },
+    },
+  });
+  if (!evento) return null;
+  return evento.infoRegalos;
+}
+
 // Construye los datos de la VISTA PREVIA reutilizando los tipos de vista de la
 // ruta pública (`DatosEvento` / `InvitacionDemo`). No crea ni persiste
 // invitaciones ni tokens: si el evento no tiene invitaciones, usa un objeto
@@ -75,6 +103,7 @@ export async function obtenerVistaPreviaSesion(): Promise<{
     include: {
       cronograma: { orderBy: { orden: "asc" } },
       fotosGaleria: { orderBy: { orden: "asc" } },
+      infoRegalos: { include: { mesasRegalo: { orderBy: { orden: "asc" } } } },
     },
   });
   if (!evento) return null;
@@ -118,6 +147,7 @@ export async function obtenerVistaPreviaSesion(): Promise<{
       url: foto.url,
       orden: foto.orden,
     })),
+    infoRegalos: mapearRegalos(evento.infoRegalos),
   };
 
   const invitacionVista: InvitacionDemo = representativa
