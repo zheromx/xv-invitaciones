@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Commit:** `feat: add editable event configuration` (sobre `86cad6e`) · **Working tree:** limpio
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `30d8f17` — `feat: add editable event configuration` · **Working tree:** cambios sin commit — **Foto principal + galería editable (UploadThing v7)**
 
 ---
 
@@ -362,19 +362,42 @@ La sección de cuenta regresiva de `ELEGANTE_EUCALIPTO` dejó de calcularse en s
 
 | Campo | Valor |
 |---|---|
-| Commit | `feat: add editable event configuration` |
+| Commit | `30d8f17` |
+| Mensaje | `feat: add editable event configuration` |
 | Fecha | 21 de septiembre de 2026 (sobre `86cad6e`) |
 | Contenido | Configuración editable del evento + vista previa que reutiliza el componente público + cuenta regresiva dinámica en cliente |
 | Estado | Working tree limpio tras este commit |
 
 ---
 
-## 13. Estado actual y pendientes
+## 13. Foto principal + galería editable (UploadThing v7)
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12.
+Subida real de imágenes con **UploadThing v7** (`uploadthing@7.7.4` + `@uploadthing/react@7.3.3`), persistencia autorizada server-side y borrado físico; la galería pública pasa a grid 2×3 (excepción aprobada, localizada a `Galería`).
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `app/api/uploadthing/core.ts` | File Router (`fotoPrincipal`, `fotoGaleria`: `image`, máx 4 MB, 1 archivo). `.middleware()` valida sesión Auth.js y deriva el Evento de `session.user.id → Evento.usuarioId`; `onUploadComplete` devuelve `{ url: file.ufsUrl }` |
+| Creado | `app/api/uploadthing/route.ts` | `createRouteHandler({ router })` (v7), runtime nodejs; accesible para callbacks de UploadThing (no protegido por proxy global) |
+| Creado | `lib/imagenes-evento.ts` | Constantes centrales (`MAX_FOTOS_GALERIA = 6`, `MAX_FOTO_PRINCIPAL = 1`, `MAX_TAMANO_IMAGEN_BYTES`, tipos permitidos) y validación/derivación de key (`claveDesdeUrlUploadThing`, `urlUploadThingValida`) |
+| Creado | `lib/imagenes-nucleo.ts` | Núcleo transaccional (testeable sin Next): guardar/eliminar principal, agregar/eliminar/reordenar galería, cupo máximo, orden secuencial `0..n-1` |
+| Creado | `lib/acciones-imagenes.ts` | Server Actions autorizadas + `UTApi.deleteFiles` (borrado físico) |
+| Creado | `lib/uploadthing.ts` | Helpers cliente v7 (`generateReactHelpers` → `useUploadThing`) |
+| Creado | `components/panel/imagenes-evento.tsx` | Bloque "Imágenes" del panel: subir/reemplazar/eliminar principal; galería hasta 6 con Subir/Bajar/eliminar |
+| Modificado | `app/panel/configuracion/page.tsx`, `components/invitacion/portada.tsx`, `components/invitacion/galeria.tsx`, `lib/evento.ts`, `lib/invitacion.ts`, `lib/evento-panel.ts`, `next.config.ts`, `.env.example` | Ruta del bloque, portada con foto real, galería 2×3, mapper/preview, `remotePatterns`, `UPLOADTHING_TOKEN` |
+
+- **Límites:** 1 foto principal; máximo **6** en galería (constante central `MAX_FOTOS_GALERIA`, sin migración); JPG/PNG/WebP; 4 MB por archivo; una imagen por operación.
+- **Seguridad:** el navegador nunca envía `eventoId`/`usuarioId`; el Evento se deriva de la sesión; las URLs se persisten **solo** por Server Actions autorizadas que validan que sean URLs de UploadThing; para borrar/reemplazar se valida pertenencia por `FotoGaleria.id`; la key de borrado físico se **deriva server-side** de la URL persistida (nunca se acepta del cliente).
+- **Borrado físico:** `UTApi.deleteFiles(key)` (v7) tras una mutación de BD exitosa; si falla, se registra y no se revierte la BD.
+- **Plantilla pública:** portada usa `Evento.fotoPrincipalUrl` si existe (si no, placeholder actual); galería **2 columnas × hasta 3 filas (máx 6)**, con fotos reales ordenadas y placeholders locales para posiciones faltantes; demo conserva placeholders sin UploadThing; preview reutiliza la plantilla y sigue inerte para RSVP.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm run build` y `npx prisma db seed` en verde. E2E real contra la cuenta v7 ejecutando el **cliente v7** (`genUploader`, misma ruta que la UI; script temporal eliminado): **16/16 PASS** — subida sin sesión rechazada; subida autenticada de principal y galería con URL/key válidas; persistencia; render en ruta pública; reemplazo con borrado físico de la anterior (y la key ya no resuelve); eliminación con borrado físico; 6/7.ª; reorden secuencial; aislamiento entre eventos.
+
+---
+
+## 14. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12 · **Foto principal + galería editable** con **UploadThing v7** (1 principal, máx 6 en galería con orden y borrado físico) y **galería pública 2×3** — §13.
 
 **Pendiente:**
-- Imágenes: foto principal y galería editable (subida/reorden/borrado).
 - Sección de regalos (opcional, activable desde el panel).
 - Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
 - Revisión manual en viewport 375 px y pruebas con datos reales del cliente.

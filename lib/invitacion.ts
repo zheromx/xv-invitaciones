@@ -24,6 +24,7 @@ export async function obtenerInvitacionPorToken(token: string) {
     nombreQuinceanera: registro.evento.nombreQuinceanera,
     nombrePadre: registro.evento.nombrePadre,
     nombreMadre: registro.evento.nombreMadre,
+    fotoPrincipalUrl: registro.evento.fotoPrincipalUrl,
     fecha: registro.evento.fecha,
     fechaLimiteRsvp: registro.evento.fechaLimiteRsvp,
     tieneMisa: registro.evento.tieneMisa,

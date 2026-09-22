@@ -1,9 +1,13 @@
 import { Eye } from "lucide-react";
-import { obtenerEventoConfiguracionSesion } from "@/lib/evento-panel";
+import {
+  obtenerEventoConfiguracionSesion,
+  obtenerImagenesEventoSesion,
+} from "@/lib/evento-panel";
 import {
   FormularioEvento,
   type ValoresInicialesEvento,
 } from "@/components/panel/formulario-evento";
+import { BloqueImagenes } from "@/components/panel/imagenes-evento";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +31,7 @@ function aFechaDia(fecha: Date | null): string {
 
 export default async function PaginaConfiguracionEvento() {
   const evento = await obtenerEventoConfiguracionSesion();
-
+  const imagenes = evento ? await obtenerImagenesEventoSesion() : null;
   if (!evento) {
     return (
       <div className="space-y-6">
@@ -99,6 +103,11 @@ export default async function PaginaConfiguracionEvento() {
       </div>
 
       <FormularioEvento inicial={inicial} />
+
+      <BloqueImagenes
+        principalUrl={imagenes?.fotoPrincipalUrl ?? null}
+        galeria={imagenes?.fotosGaleria ?? []}
+      />
     </div>
   );
 }

@@ -41,6 +41,24 @@ export type EventoConfiguracion = NonNullable<
   Awaited<ReturnType<typeof obtenerEventoConfiguracionSesion>>
 >;
 
+// Imágenes del Evento autorizado (principal + galería ordenada). Derivadas
+// server-side de la sesión; el cliente nunca envía eventoId.
+export async function obtenerImagenesEventoSesion() {
+  const sesion = await auth();
+  if (!sesion?.user) return null;
+
+  return prisma.evento.findFirst({
+    where: { usuarioId: sesion.user.id },
+    select: {
+      fotoPrincipalUrl: true,
+      fotosGaleria: {
+        orderBy: { orden: "asc" },
+        select: { id: true, url: true, orden: true },
+      },
+    },
+  });
+}
+
 // Construye los datos de la VISTA PREVIA reutilizando los tipos de vista de la
 // ruta pública (`DatosEvento` / `InvitacionDemo`). No crea ni persiste
 // invitaciones ni tokens: si el evento no tiene invitaciones, usa un objeto
@@ -78,6 +96,7 @@ export async function obtenerVistaPreviaSesion(): Promise<{
     nombreQuinceanera: evento.nombreQuinceanera,
     nombrePadre: evento.nombrePadre,
     nombreMadre: evento.nombreMadre,
+    fotoPrincipalUrl: evento.fotoPrincipalUrl,
     fecha: evento.fecha,
     fechaLimiteRsvp: evento.fechaLimiteRsvp,
     tieneMisa: evento.tieneMisa,

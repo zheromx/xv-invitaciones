@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { DatosEvento } from "@/lib/evento";
 import { formatearFechaLarga } from "@/lib/evento";
 
@@ -45,14 +46,27 @@ export function Portada({ evento }: { evento: DatosEvento }) {
     <section className="relative overflow-hidden rounded-t-[140px] rounded-b-2xl bg-eucalipto-900 shadow-sm">
       <div className="relative aspect-[3/4] w-full overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-eucalipto-700 via-eucalipto-800 to-eucalipto-900" />
-        <div
-          className="pointer-events-none absolute inset-x-10 top-16 aspect-square rounded-full border border-dorado/25"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-x-20 top-28 aspect-square rounded-full border border-white/10"
-          aria-hidden="true"
-        />
+        {evento.fotoPrincipalUrl ? (
+          <Image
+            src={evento.fotoPrincipalUrl}
+            alt={`Foto de ${evento.nombreQuinceanera}`}
+            fill
+            priority
+            sizes="(max-width: 420px) 100vw, 420px"
+            className="object-cover"
+          />
+        ) : (
+          <>
+            <div
+              className="pointer-events-none absolute inset-x-10 top-16 aspect-square rounded-full border border-dorado/25"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-x-20 top-28 aspect-square rounded-full border border-white/10"
+              aria-hidden="true"
+            />
+          </>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-eucalipto-900/95 via-eucalipto-900/30 to-transparent" />
 
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-8 pt-24 text-center">

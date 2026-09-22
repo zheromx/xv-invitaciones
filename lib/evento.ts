@@ -14,6 +14,7 @@ export type DatosEvento = {
   nombreQuinceanera: string;
   nombrePadre: string | null;
   nombreMadre: string | null;
+  fotoPrincipalUrl?: string | null;
   fecha: Date;
   fechaLimiteRsvp: Date | null;
   tieneMisa: boolean;
