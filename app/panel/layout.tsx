@@ -28,6 +28,12 @@ export default async function PanelLayout({
               >
                 Invitaciones
               </a>
+              <a
+                href="/panel/configuracion"
+                className="font-medium text-zinc-600 hover:text-eucalipto-700"
+              >
+                Configuración
+              </a>
             </nav>
           </div>
           <div className="flex items-center gap-3">

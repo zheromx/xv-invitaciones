@@ -48,9 +48,12 @@ export type DuracionHasta = {
   segundos: number;
 };
 
-export function duracionHasta(fecha: Date): DuracionHasta {
-  let diff = fecha.getTime() - Date.now();
-  if (diff < 0) diff = 0;
+export function duracionHasta(
+  fecha: Date,
+  ahora: number = Date.now()
+): DuracionHasta {
+  let diff = fecha.getTime() - ahora;
+  if (!Number.isFinite(diff) || diff < 0) diff = 0;
   const totalSegundos = Math.floor(diff / 1000);
   return {
     dias: Math.floor(totalSegundos / 86400),

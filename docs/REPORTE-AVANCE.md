@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `86cad6e` · **Working tree:** limpio (entregable **Dashboard de conteo** comiteado)
+**Fecha:** 21 de septiembre de 2026 · **Commit:** `feat: add editable event configuration` (sobre `86cad6e`) · **Working tree:** limpio
 
 ---
 
@@ -45,7 +45,7 @@ Ruta temporal **`/invitacion/demo`** representando la plantilla **`ELEGANTE_EUCA
 | Creado | `components/invitacion/{portada,detalles-evento,cuenta-regresiva,cronograma,galeria,rsvp}.tsx` | Secciones de la invitación |
 | Creado | `lib/evento.ts` | Tipos de la capa de vista + formateadores `es-MX` y cálculo de cuenta regresiva |
 
-Reglas respetadas: sin imágenes ni URLs remotas (solo gradientes, formas CSS y SVGs propios locales); RSVP puramente visual e inerte (botones sin acciones, sin fetch, sin mutación); cuenta regresiva estática calculada en servidor al renderizar.
+Reglas respetadas: sin imágenes ni URLs remotas (solo gradientes, formas CSS y SVGs propios locales); RSVP puramente visual e inerte (botones sin acciones, sin fetch, sin mutación); cuenta regresiva dinámica en cliente a partir de `Evento.fecha`.
 
 ---
 
@@ -82,7 +82,7 @@ Aplicado en `app/globals.css` (escalas de color `eucalipto-*`, `marfil-*`, `dora
 - **Portada (`portada.tsx`):** arco `rounded-t-[140px]` (motivo de arco de las screens Stitch), `aspect-[3/4]`, degradé verde bosque + aros decorativos, ramita SVG, chip "Mis XV Años", nombre en Playfair y fecha larga.
 - **Mensaje de padres (`mensaje-padres.tsx`, nuevo):** tarjeta con cita propia, iniciales de los padres y divisor.
 - **Detalles del evento (`detalles-evento.tsx`):** tarjetas apiladas por bloque (ceremonia/recepción), icono en círculo, hora en píldora, botón "Ver ubicación" **inerte**, bloque de protocolo/vestimenta.
-- **Cuenta regresiva (`cuenta-regresiva.tsx`):** bloque claro con 4 mosaicos y cifras estáticas (alineado al contraste claro de Stitch, sin secuencia de números anteriores).
+- **Cuenta regresiva (`cuenta-regresiva.tsx`):** bloque claro con 4 mosaicos y **cifras dinámicas en cliente** que se actualizan cada segundo desde `Evento.fecha` (alineado al contraste claro de Stitch).
 - **Cronograma (`cronograma.tsx`):** línea continua + nodos de punto sobre tarjeta blanca (`<ol>` semántico), como el timeline de Stitch.
 - **Galería (`galeria.tsx`):** grid 2×2 `aspect-square` con placeholders SVG locales.
 - **RSVP (`rsvp.tsx`):** dos estados visuales según `respondida`:
@@ -321,14 +321,61 @@ Métricas agregadas de confirmación en `/panel`, con la identidad visual actual
 
 ---
 
-## 12. Estado actual y pendientes
+## 12. Configuración editable del evento
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11.
+Datos base del evento, sedes, protocolo, cronograma y selector limitado de plantilla, con vista previa que reutiliza el componente público.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `lib/evento-panel.ts` | `obtenerEventoConfiguracionSesion()` (auth → `Evento` de la sesión + `MomentoEvento` ordenados) y `obtenerVistaPreviaSesion()` (arma `DatosEvento`/`InvitacionDemo` sin persistir ni firmar RSVP) |
+| Creado | `lib/evento-validacion.ts` | Validación runtime pura de `FormData` → `DatosEventoActualizables` (o `null`) |
+| Creado | `lib/evento-nucleo.ts` | Núcleo transaccional testeable sin Next: `ejecutarActualizarEvento(usuarioId, datos)` actualiza `Evento` + sincroniza `MomentoEvento` en una transacción |
+| Creado | `lib/acciones-evento.ts` | Server Action fina `actualizarEvento` (auth → validación → mutación → `revalidatePath`) |
+| Creado | `lib/plantillas.ts` | Catálogo de plantillas con disponibilidad (solo `ELEGANTE_EUCALIPTO`) |
+| Creado | `components/panel/formulario-evento.tsx` | Formulario cliente por bloques, cronograma con Subir/Bajar y selector de plantilla |
+| Creado | `app/panel/configuracion/page.tsx` · `app/panel/configuracion/vista-previa/page.tsx` | Rutas protegidas |
+| Modificado | `app/panel/layout.tsx` (nav), `app/panel/page.tsx` (acceso) | Enlaces a la configuración |
+
+- **Alcance editable:** datos generales (quinceañera, padre, madre, padrinos), fecha y fecha límite de RSVP, ceremonia (con `tieneMisa`; si es `false` los tres campos de misa quedan `null` en BD y no se piden en UI), recepción obligatoria, protocolo (vestimenta e info adicional), cronograma y plantilla.
+- **Seguridad:** el navegador nunca envía `eventoId`/`usuarioId`; el `Evento` se deriva de `session.user.id → Evento.usuarioId` y los `MomentoEvento.id` se validan contra ese evento dentro de la transacción (`no-autorizado` si no pertenecen). No se toca `Invitacion`, `Persona`, token, RSVP ni `respondida`.
+- **Cronograma:** crear/editar/eliminar/reordenar con controles Subir/Bajar (sin drag-and-drop); conserva `MomentoEvento.id` de filas existentes y persiste el orden secuencial `0..n-1`, todo dentro de la transacción.
+- **Plantilla:** solo `ELEGANTE_EUCALIPTO` es seleccionable; `CLASICA_DORADA`, `PASTEL_ROMANTICA` y `MODERNA_MINIMAL` se muestran como "Próximamente", deshabilitadas y sin modificar el valor guardado.
+- **Vista previa:** `/panel/configuracion/vista-previa` **reutiliza `EleganteEucalipto`** (el mismo componente del invitado), sin modo preview ni layout/plantilla paralelos; usa una invitación representativa del evento o un objeto mínimo interno (sin persistir ni generar token) y no activa el RSVP (no se pasa `token`).
+- **Revalidación:** `/panel/configuracion`, `/panel` y `/invitacion/[token]` (patrón dinámico).
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm run build` y `npx prisma db seed` sin errores; **21/21 checks** de núcleo contra la BD dev (script temporal eliminado) cubriendo persistencia, misa on/off, alta/edición/borrado/reorden del cronograma con IDs preservados, rechazo de momento de otro evento sin mutación parcial y RSVP intacto; runtime con sesión dev: `/panel/configuracion` 200 (sin sesión 302 → `/login`), vista previa 200 con RSVP inerte, públicas 200 y `/invitacion/demo` inerte.
+
+### 12.1 Cuenta regresiva dinámica (cliente)
+
+La sección de cuenta regresiva de `ELEGANTE_EUCALIPTO` dejó de calcularse en servidor y ahora es un **contador dinámico en el cliente**, sin rediseñar la plantilla.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Modificado | `components/invitacion/cuenta-regresiva.tsx` | Client component: mismo contrato `{ evento }` y misma composición visual; recalcula cada segundo |
+| Modificado | `lib/evento.ts` | `duracionHasta(fecha, ahora?)`: parámetro opcional retrocompatible y clamp de fecha pasada/inválida a `0` |
+
+- **Comportamiento:** calcula la diferencia entre la hora actual y `Evento.fecha` en el cliente, muestra días/horas/min/seg y se actualiza cada segundo con `setInterval`, limpiado en el cleanup al desmontar. Si la fecha ya pasó o es inválida, muestra `00` en los cuatro valores (sin negativos ni `NaN`).
+- **Hidratación:** estado inicial estable (`ahora = null`); SSR y el primer render del cliente muestran `00`, y el cálculo arranca en `useEffect` (post-hidratación), evitando mismatches. La fecha larga (sensible a zona horaria/locale) usa `suppressHydrationWarning` y solo se renderiza si la fecha es válida.
+- **Alcance:** funciona en `/invitacion/[token]`, `/invitacion/demo` y `/panel/configuracion/vista-previa`; sin animaciones pesadas, requests ni dependencias nuevas. No altera RSVP: demo y vista previa siguen inertes.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde; runtime 200 con la sección presente y 4 celdas en el estado inicial `00`; pública con RSVP interactivo y demo/vista previa inertes.
+
+### 12.2 Registro del commit
+
+| Campo | Valor |
+|---|---|
+| Commit | `feat: add editable event configuration` |
+| Fecha | 21 de septiembre de 2026 (sobre `86cad6e`) |
+| Contenido | Configuración editable del evento + vista previa que reutiliza el componente público + cuenta regresiva dinámica en cliente |
+| Estado | Working tree limpio tras este commit |
+
+---
+
+## 13. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12.
 
 **Pendiente:**
-- Configuración/datos editables del evento desde el panel (quinceañera, padres, fechas y lugares de misa/recepción, cronograma, galería, código de vestimenta, regalos).
-- Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
+- Imágenes: foto principal y galería editable (subida/reorden/borrado).
 - Sección de regalos (opcional, activable desde el panel).
-- Vista previa en el panel con los datos actuales del evento (reutiliza la misma plantilla).
+- Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
 - Revisión manual en viewport 375 px y pruebas con datos reales del cliente.
 - Las 11 pruebas manuales de RSVP del plan (todos/algunos/nadie, doble clic, dos pestañas, token inexistente, id ajeno, ya respondida, error de BD, recarga, demo inerte).

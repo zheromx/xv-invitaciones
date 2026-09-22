@@ -98,6 +98,12 @@ export default async function PaginaPanel() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <a
+            href="/panel/configuracion"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+          >
+            Configuración
+          </a>
+          <a
             href="/panel/invitaciones"
             className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
           >

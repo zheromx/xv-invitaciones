@@ -1,9 +1,29 @@
+"use client";
+
 import { Clock } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { DatosEvento } from "@/lib/evento";
 import { duracionHasta, formatearFechaLarga } from "@/lib/evento";
 
+const CERO = { dias: 0, horas: 0, minutos: 0, segundos: 0 };
+
 export function CuentaRegresiva({ evento }: { evento: DatosEvento }) {
-  const { dias, horas, minutos, segundos } = duracionHasta(evento.fecha);
+  // Estado inicial estable para SSR/hidratación: servidor y primer render del
+  // cliente muestran 00; el cálculo real arranca en el efecto, ya en cliente.
+  const [ahora, setAhora] = useState<number | null>(null);
+
+  useEffect(() => {
+    const actualizar = () => setAhora(Date.now());
+    actualizar();
+    const intervalo = setInterval(actualizar, 1000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const { dias, horas, minutos, segundos } =
+    ahora === null ? CERO : duracionHasta(evento.fecha, ahora);
+
+  const fechaValida = Number.isFinite(evento.fecha.getTime());
+
   const unidades = [
     { valor: dias, etiqueta: "Días" },
     { valor: horas, etiqueta: "Horas" },
@@ -25,7 +45,7 @@ export function CuentaRegresiva({ evento }: { evento: DatosEvento }) {
             key={u.etiqueta}
             className="flex flex-col items-center rounded-xl bg-white px-1 py-3 shadow-sm"
           >
-            <span className="font-serif text-2xl font-bold text-eucalipto-700">
+            <span className="font-serif text-2xl font-bold tabular-nums text-eucalipto-700">
               {String(u.valor).padStart(2, "0")}
             </span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
@@ -34,11 +54,13 @@ export function CuentaRegresiva({ evento }: { evento: DatosEvento }) {
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs text-zinc-500">
-        {formatearFechaLarga(evento.fecha)}
-      </p>
+      {fechaValida && (
+        <p className="mt-3 text-xs text-zinc-500" suppressHydrationWarning>
+          {formatearFechaLarga(evento.fecha)}
+        </p>
+      )}
       <p className="mt-1 text-[10px] text-zinc-400">
-        Cifras calculadas al momento de cargar esta vista.
+        Se actualiza en tiempo real.
       </p>
     </section>
   );
