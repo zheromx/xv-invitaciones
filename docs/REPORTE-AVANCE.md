@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `30d8f17` — `feat: add editable event configuration` · **Working tree:** cambios sin commit — **Foto principal + galería editable (UploadThing v7)**
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `bca6ef5` — `feat: add event image uploads with UploadThing` · **Working tree:** limpio
 
 ---
 
