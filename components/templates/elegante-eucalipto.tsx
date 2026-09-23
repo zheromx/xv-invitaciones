@@ -1,4 +1,5 @@
 import type { DatosEvento, InvitacionDemo } from "@/lib/evento";
+import { Bienvenida } from "@/components/invitacion/bienvenida";
 import { Portada } from "@/components/invitacion/portada";
 import { MensajePadres } from "@/components/invitacion/mensaje-padres";
 import { DetallesEvento } from "@/components/invitacion/detalles-evento";
@@ -22,7 +23,11 @@ export function EleganteEucalipto({
 }) {
   return (
     <div className="min-h-full bg-marfil">
-      <main className="mx-auto flex w-full max-w-[420px] flex-col gap-5 bg-marfil pb-8">
+      <Bienvenida evento={evento} />
+      <main
+        id="invitacion"
+        className="mx-auto flex w-full max-w-[420px] flex-col gap-5 bg-marfil pb-8"
+      >
         <Portada evento={evento} />
         <MensajePadres evento={evento} />
         <CuentaRegresiva evento={evento} />

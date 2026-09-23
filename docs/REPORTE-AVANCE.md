@@ -512,3 +512,18 @@ Tres mejoras sobre la invitación pública y el panel de configuración. Ambas m
 - `lib/invitacion.ts`: `obtenerInvitacionPorToken` envuelto en `cache()` de React → **una sola consulta** por request entre `generateMetadata` y el render (firma, query, mapper y contrato intactos).
 
 **Validaciones (globales):** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.
+
+---
+
+## 19. Pantalla de bienvenida (sobre cerrado) en ELEGANTE_EUCALIPTO
+
+Bienvenida de altura de viewport que precede al contenido de la invitación, implementada como parte del mismo árbol de la plantilla (no ruta, layout ni modo preview separado) y fiel a `design/06-pantalla-bienvenida-sobre-cerrado.html`.
+
+- **Integración:** `components/templates/elegante-eucalipto.tsx` renderiza `<Bienvenida evento={evento} />` **antes** de `<main id="invitacion">`; el orden aprobado de secciones no cambia y `components/invitacion/portada.tsx` queda intacta.
+- **Componente nuevo:** `components/invitacion/bienvenida.tsx` (client). Composición Stitch: glow ambiental estático, tarjeta `max-w-[370px]` `rounded-[2rem]` con textura, marco interior dorado (`inset-2.5`), solapa `h-28` con trazos dorados y sombra, 4 ornamentos de esquina 44×44 (`#e0c298`), etiqueta `MIS XV AÑOS`, nombre en Playfair italic 40 px (`text-eucalipto-900`), frase fija, fecha en píldora con icono `CalendarDays`, sello 80×80 con aro dorado degradado + laurel local + inicial, CTA `max-w-[280px] h-[54px]` "Abrir invitación" (`<a href="#invitacion">`) y costura inferior dorada.
+- **Datos dinámicos:** `evento.nombreQuinceanera`, `formatearFechaLarga(evento.fecha)` e inicial derivada; **sin** `fotoPrincipalUrl` (la foto permanece solo en la portada real).
+- **Apertura ceremonial (dos fases):** guarda anti doble clic; **250 ms** de pausa estable y luego salida de **1000 ms** con `cubic-bezier(0.4,0,0.2,1)` y `-translate-y-6`, animando **solo** `opacity`/`transform`. Cierre al `onTransitionEnd` (`target === currentTarget`, `propertyName === "opacity"`) con **fallback** de 1350 ms e idempotencia; al final se desmonta, se restaura el scroll, se actualiza `#invitacion` y se hace `scrollIntoView`.
+- **Comportamiento:** overlay fijo con bloqueo/restauración segura de `body.overflow`, estado local efímero, `history.replaceState("#invitacion")` y **fallback sin JavaScript** (en flujo; el `href` navega nativamente a `#invitacion`). Con `prefers-reduced-motion: reduce`: apertura y scroll **inmediatos**, sin pausa ni transición, y pulso desactivado.
+- **Anillo del sello:** base estática `ring-1 ring-dorado-claro/40` + pulso animado (`bg-dorado/45`, extensión `-inset-2.5`) con `@keyframes` local scoped, solo `opacity`/`transform` (escala ≤ 1.07, ciclo 2.5 s).
+- **Mismo comportamiento** en ruta real, demo y vista previa; RSVP inerte en demo/preview y RSVP real sin cambios.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde; verificado en el HTML servido (`duration-[1000ms]`, `cubic-bezier(0.4,0,0.2,1)`, `-translate-y-6`).
