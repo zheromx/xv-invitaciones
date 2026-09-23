@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `d82103b` — `feat: XV de Esther | Invitación Metadata Dinámica` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `5e131b2` — `feat: pantalla de bienvenida tipo sobre cerrado con apertura ceremonial` · **Working tree:** limpio
 
 ---
 
