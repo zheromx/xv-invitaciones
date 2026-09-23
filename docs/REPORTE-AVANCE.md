@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `98f44a4` — `docs: registrar el commit del pulido de invitación pública y reglas de protección de datos` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `dbb55b3` — `chore: actualizar Prisma a 6.19.3` · **Working tree:** limpio
 
 ---
 
