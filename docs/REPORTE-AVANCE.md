@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `f324f34` — `feat: pulir invitación pública y configuración de evento` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `98f44a4` — `docs: registrar el commit del pulido de invitación pública y reglas de protección de datos` · **Working tree:** limpio
 
 ---
 
@@ -126,6 +126,12 @@ Conexión real del template a la base de datos, sin tocar la plantilla ni la dem
   - `/invitacion/dev-familia-lopez-sin-responder-2026` → `respondida=false`, 3 personas `asiste=null`.
   - `/invitacion/dev-familia-martinez-respondida-2026` → `respondida=true`, personas `asiste=true/true/false`.
 - Ejecutado dos veces consecutivas sin errores (idempotente). Re-ejecutarlo restaura el estado "sin responder" para repetir pruebas.
+
+> **Advertencia — protección de datos locales**
+> - El seed es **únicamente para una base de desarrollo desechable**.
+> - La base local activa puede contener datos, invitaciones, RSVP y fotos cargados manualmente.
+> - Está **prohibido** ejecutar `npx prisma db seed` sobre esa base sin **autorización explícita del dueño en el mismo mensaje**.
+> - "Idempotente" **no** significa "seguro para datos manuales".
 
 ---
 
@@ -446,6 +452,12 @@ Corrección del desborde horizontal del panel a 375 px, localizada **exclusivame
 
 **Pruebas manuales:** aprobada la verificación visual a **375 px** (visor centrado, imagen sin recorte, controles Cerrar/Anterior/Siguiente visibles). **PENDIENTES en navegador** los 6 comportamientos de interacción del visor —cierre con **botón Cerrar**, cierre con **clic/tap en fondo**, cierre con **Escape**, **Anterior/Siguiente** en extremos, **bloqueo/restauración de scroll** y **retorno de foco** al trigger—, verificados por ahora solo de forma estática en código.
 
+### 15.2 Protección de datos de desarrollo local
+
+La regla operativa persistente vive en **`AGENTS.md`** → sección **"Protección de datos de desarrollo local"**: prohíbe `npx prisma db seed`, `npx prisma migrate reset`, `npx prisma db push`, scripts de limpieza y escrituras/`DELETE`/`TRUNCATE` masivos sin autorización explícita del dueño en el mismo mensaje; el seed solo aplica a bases de desarrollo desechables.
+
+- **Commit `98f44a4`** — `docs: registrar el commit del pulido de invitación pública y reglas de protección de datos`: registra el commit del pulido (`f324f34`) en la cabecera del reporte y añade en `AGENTS.md` la sección de protección de datos. Cambio **exclusivamente documental** (sin código, schema, migraciones ni datos).
+
 ---
 
 ## 16. Estado actual y pendientes
@@ -457,3 +469,5 @@ Corrección del desborde horizontal del panel a 375 px, localizada **exclusivame
 - Pruebas con datos reales del cliente (la revisión visual del panel a 375 px quedó aprobada — §15.1).
 - Las 11 pruebas manuales de RSVP del plan (todos/algunos/nadie, doble clic, dos pestañas, token inexistente, id ajeno, ya respondida, error de BD, recarga, demo inerte).
 - Pruebas manuales del visor de galería (toque a 375 px, Escape, tap fuera, scroll, navegación, sin recorte, retorno de foco) — ver §15.
+
+> **Nota operativa:** las futuras verificaciones rutinarias **no** deben incluir `seed`, `reset`, `db push` ni comandos de escritura sobre datos sin autorización explícita. Ver `AGENTS.md` → sección **"Protección de datos de desarrollo local"**.
