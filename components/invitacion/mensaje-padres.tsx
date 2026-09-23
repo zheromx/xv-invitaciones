@@ -5,14 +5,21 @@ export function MensajePadres({ evento }: { evento: DatosEvento }) {
     evento.nombrePadre && evento.nombreMadre
       ? `${evento.nombrePadre} & ${evento.nombreMadre}`
       : null;
+  const mensaje = evento.mensajePadres?.trim();
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-dorado/25 bg-marfil-osc px-5 py-6 text-center">
-      <p className="mx-auto max-w-[300px] font-serif text-[17px] italic leading-relaxed text-eucalipto-700">
-        “Con la bendición de Dios y la alegría de nuestras familias, te
-        invitamos a celebrar los XV años de {evento.nombreQuinceanera}. Tu
-        presencia hará de este día un recuerdo inolvidable.”
-      </p>
+      {mensaje ? (
+        <p className="mx-auto max-w-[300px] whitespace-pre-wrap font-serif text-[17px] italic leading-relaxed text-eucalipto-700">
+          {mensaje}
+        </p>
+      ) : (
+        <p className="mx-auto max-w-[300px] font-serif text-[17px] italic leading-relaxed text-eucalipto-700">
+          “Con la bendición de Dios y la alegría de nuestras familias, te
+          invitamos a celebrar los XV años de {evento.nombreQuinceanera}. Tu
+          presencia hará de este día un recuerdo inolvidable.”
+        </p>
+      )}
       <div
         className="mx-auto mt-4 flex items-center justify-center gap-2 text-eucalipto-400"
         aria-hidden="true"

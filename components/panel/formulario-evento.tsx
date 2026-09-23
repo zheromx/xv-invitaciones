@@ -33,6 +33,7 @@ export type ValoresInicialesEvento = {
   nombrePadre: string;
   nombreMadre: string;
   nombrePadrinos: string;
+  mensajePadres: string;
   fecha: string;
   fechaLimiteRsvp: string;
   tieneMisa: boolean;
@@ -209,6 +210,21 @@ export function FormularioEvento({
               placeholder="Ej. Roberto Herrera y Daniela Garza"
               className={claseInput}
             />
+          </label>
+          <label className={claseEtiqueta}>
+            <span className={claseTitulo}>Mensaje de los padres (opcional)</span>
+            <textarea
+              name="mensajePadres"
+              defaultValue={inicial.mensajePadres}
+              maxLength={1000}
+              rows={3}
+              placeholder="Ej. Con la bendición de Dios y la alegría de nuestras familias…"
+              className={claseArea}
+            />
+            <span className="mt-1 block text-[11px] text-zinc-400">
+              Si lo dejas vacío se usa el mensaje predeterminado. Se conservan
+              los saltos de línea.
+            </span>
           </label>
         </Seccion>
 

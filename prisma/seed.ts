@@ -5,8 +5,10 @@ const prisma = new PrismaClient();
 
 const EMAIL_DESARROLLO = "desarrollo@invitaciones.local";
 const PASSWORD_DESARROLLO = "cambiar-en-produccion-123";
+const EMAIL_FALLBACK = "desarrollo-fallback@invitaciones.local";
 const TOKEN_SIN_RESPONDER = "dev-familia-lopez-sin-responder-2026";
 const TOKEN_RESPONDIDA = "dev-familia-martinez-respondida-2026";
+const TOKEN_FALLBACK_MENSAJE = "dev-mensaje-fallback-2026";
 
 const FECHA_EVENTO = new Date(2026, 10, 7, 19, 0, 0);
 const FECHA_LIMITE_RSVP = new Date(2026, 9, 31, 23, 59, 0);
@@ -23,6 +25,7 @@ const datosEvento = {
   nombrePadre: "Jorge",
   nombreMadre: "Ana María",
   nombrePadrinos: "Padrinos de desarrollo",
+  mensajePadres: "Con todo nuestro amor, Jorge y Ana María.",
   fecha: FECHA_EVENTO,
   fechaLimiteRsvp: FECHA_LIMITE_RSVP,
   tieneMisa: true,
@@ -153,9 +156,85 @@ async function main() {
     { nombre: "Lucía Martínez", asiste: false },
   ]);
 
+  // Segundo evento (usuario aparte) con mensajePadres=null para comprobar el
+  // fallback EXACTO del bloque de padres de forma determinista.
+  const usuarioFallback = await prisma.usuario.upsert({
+    where: { email: EMAIL_FALLBACK },
+    update: {
+      nombre: "Desarrollo — fallback mensaje",
+      password: passwordHash,
+    },
+    create: {
+      email: EMAIL_FALLBACK,
+      password: passwordHash,
+      nombre: "Desarrollo — fallback mensaje",
+    },
+  });
+
+  const eventoFallbackExistente = await prisma.evento.findFirst({
+    where: { usuarioId: usuarioFallback.id },
+  });
+
+  const datosEventoFallback = {
+    ...datosEvento,
+    nombreQuinceanera: "Valentina (fallback)",
+    mensajePadres: null,
+  };
+
+  const eventoFallback = eventoFallbackExistente
+    ? await prisma.evento.update({
+        where: { id: eventoFallbackExistente.id },
+        data: datosEventoFallback,
+      })
+    : await prisma.evento.create({
+        data: { ...datosEventoFallback, usuarioId: usuarioFallback.id },
+      });
+
+  await prisma.momentoEvento.deleteMany({ where: { eventoId: eventoFallback.id } });
+  await prisma.momentoEvento.createMany({
+    data: cronograma.map((momento, orden) => ({
+      ...momento,
+      orden,
+      eventoId: eventoFallback.id,
+    })),
+  });
+
+  await prisma.fotoGaleria.deleteMany({ where: { eventoId: eventoFallback.id } });
+  await prisma.fotoGaleria.createMany({
+    data: [1, 2, 3, 4].map((n) => ({
+      url: urlGaleria(n),
+      orden: n - 1,
+      eventoId: eventoFallback.id,
+    })),
+  });
+
+  const invitacionFallback = await prisma.invitacion.upsert({
+    where: { token: TOKEN_FALLBACK_MENSAJE },
+    update: {
+      titulo: "Familia Fallback — mensaje nulo",
+      eventoId: eventoFallback.id,
+      respondida: false,
+      respondidaEn: null,
+      enviadaEn: FECHA_ENVIADA,
+    },
+    create: {
+      titulo: "Familia Fallback — mensaje nulo",
+      token: TOKEN_FALLBACK_MENSAJE,
+      eventoId: eventoFallback.id,
+      respondida: false,
+      respondidaEn: null,
+      enviadaEn: FECHA_ENVIADA,
+    },
+  });
+
+  await sincronizarPersonas(invitacionFallback.id, [
+    { nombre: "Persona Fallback", asiste: null },
+  ]);
+
   console.log("Seed de desarrollo aplicado.");
   console.log(`Sin responder: /invitacion/${invitacionSinResponder.token}`);
   console.log(`Respondida:     /invitacion/${invitacionRespondida.token}`);
+  console.log(`Fallback msg:   /invitacion/${invitacionFallback.token}`);
 }
 
 main()

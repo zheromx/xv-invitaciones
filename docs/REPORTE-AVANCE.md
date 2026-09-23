@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `40b99fc` — `feat: add gift registry section` · **Working tree:** limpio
+**Fecha:** 21 de septiembre de 2026 · **Último commit:** `084ed64` — `docs: update progress report` · **Working tree:** cambios sin commit — **Pulido funcional de invitación pública**
 
 ---
 
@@ -415,11 +415,45 @@ Sección opcional controlada por `InfoRegalos.mostrar`, con mensaje libre, datos
 
 ---
 
-## 15. Estado actual y pendientes
+## 15. Pulido funcional de invitación pública
 
-**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12 · **Foto principal + galería editable** con **UploadThing v7** (1 principal, máx 6 en galería con orden y borrado físico) y **galería pública 2×3** — §13 · **Regalos y mesas de regalo** (opcional con `mostrar`, mensaje, datos bancarios, número de evento y hasta 5 mesas con URL https:// y borrado/orden) — §14.
+Mensaje de padres configurable, nuevo orden de secciones, ubicaciones funcionales y visor ligero de galería.
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Migración | `prisma/migrations/20260923000052_add_mensaje_padres_to_evento/` | `ALTER TABLE "Evento" ADD COLUMN "mensajePadres" TEXT;` (nullable, sin backfill ni transformación) |
+| Modificado | `prisma/schema.prisma`, `prisma/seed.ts` | Campo `Evento.mensajePadres String?`; seed con mensaje dev representativo + evento/usuario/token aparte con `mensajePadres=null` (`dev-mensaje-fallback-2026`) |
+| Modificado | `lib/evento.ts`, `lib/invitacion.ts`, `lib/evento-panel.ts`, `lib/evento-validacion.ts`, `lib/evento-nucleo.ts`, `components/panel/formulario-evento.tsx`, `app/panel/configuracion/page.tsx` | Tipo/mappers, validación (trim, ≤1000, vacío→null), persistencia en la mutación de Evento autorizada por sesión, textarea "Mensaje de los padres" |
+| Creado | `lib/ubicaciones.ts` | `urlMapaGoogle(direccion)`: `https://www.google.com/maps/search/?api=1&query=…` (sin API key, SDK, geocoding ni coordenadas) |
+| Modificado | `components/invitacion/detalles-evento.tsx` | "Ver ubicación" como enlace real (misa/recepción) solo si hay dirección útil |
+| Creado | `components/invitacion/galeria-interactiva.tsx` | Client component aislado del visor (recibe solo fotos reales + alt) |
+| Modificado | `components/invitacion/mensaje-padres.tsx`, `components/invitacion/galeria.tsx`, `components/templates/elegante-eucalipto.tsx` | Mensaje configurable con fallback; galería (server) + visor; nuevo orden |
+
+- **Mensaje de padres:** si `mensajePadres` tiene texto útil se renderiza con `whitespace-pre-wrap` (preserva saltos); si es `null`/vacío se conserva **exactamente** el texto fijo actual. Demo sin mensaje → fallback; preview usa el persistido cuando existe.
+- **Nuevo orden (excepción aprobada):** Portada → Padres → Cuenta regresiva → RSVP → Detalles → Cronograma → Galería → Regalos → Footer. Solo cambió el orden de composición; RSVP conserva sus estados/garantías y demo/preview siguen inertes.
+- **Ubicaciones:** ceremonia usa `misaDireccion` y recepción `recepcionDireccion`; enlace con `target="_blank"` y `rel="noopener noreferrer"`; si no hay dirección no se renderiza botón inerte ni enlace vacío.
+- **Visor de galería:** solo fotos reales (placeholders/demo no abren); clic/tap abre; fondo oscuro, imagen `object-contain` sin recorte; cierre con botón "Cerrar" (etiqueta accesible), Escape y clic/toque en el fondo; bloquea el scroll de fondo y lo restaura; Anterior/Siguiente (≥44 px) con más de una foto; `role="dialog"`/`aria-modal="true"`, foco inicial en "Cerrar", retorno de foco al trigger; sin focus trap (v1). Grid 2×3 intacto.
+- **Validaciones:** migración aplicada (`migrate status` sin drift, 2 migraciones), Prisma Client regenerado y seed idempotente; `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde; **10/10** checks de validación/núcleo y **11/11** de runtime (scripts temporales eliminados): mensaje custom/trim/saltos/límite/`null`, `urlMapaGoogle` (null sin dirección, encoding y round-trip), persistencia; orden de secciones, mensaje custom vs fallback determinista por token, enlaces Maps con `target`/`rel`, triggers del visor, y RSVP sin responder/respondida/demo/preview.
+
+### 15.1 Responsividad móvil del shell del panel
+
+Corrección del desborde horizontal del panel a 375 px, localizada **exclusivamente** en el shell (`app/panel/layout.tsx`); no toca galería, visor/portal, RSVP, plantilla, datos ni migración.
+
+- **Síntoma:** a 375 px, `/panel/configuracion/vista-previa` mostraba una columna blanca a la derecha y el contenido desplazado a la izquierda (desborde horizontal de todo el panel); la ruta pública no fallaba porque usa otro árbol de layout.
+- **Causa:** el shell del panel (compartido por todo `/panel`) no tenía guardia de overflow horizontal y `<main>` carecía de `min-w-0`; un descendiente con mínimo intrínseco mayor que el viewport ensanchaba la página (el visor/portal de la galería no intervenía).
+- **Cambio (1 archivo, 2 clases):** raíz `min-h-full` → `min-h-full overflow-x-clip`; `<main>` → `mx-auto w-full min-w-0 max-w-5xl px-4 py-8`. `overflow-x-clip` recorta el exceso lateral sin crear contenedor scrolleable (no afecta el RSVP ni el visor con portal).
+- **Verificación:** `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm run build` y `npx prisma migrate status` en verde; **aprobación visual a 375 px** (sin columna blanca ni scroll horizontal; header/nav/sesión/Salir visibles y usables; preview a ancho completo; visor centrado, sin recorte y con controles visibles; portal y RSVP intactos).
+
+**Pruebas manuales:** aprobada la verificación visual a **375 px** (visor centrado, imagen sin recorte, controles Cerrar/Anterior/Siguiente visibles). **PENDIENTES en navegador** los 6 comportamientos de interacción del visor —cierre con **botón Cerrar**, cierre con **clic/tap en fondo**, cierre con **Escape**, **Anterior/Siguiente** en extremos, **bloqueo/restauración de scroll** y **retorno de foco** al trigger—, verificados por ahora solo de forma estática en código.
+
+---
+
+## 16. Estado actual y pendientes
+
+**Listo:** base de datos modelada y migrada · plantilla 1 (`ELEGANTE_EUCALIPTO`) alineada a Stitch · demo `/invitacion/demo` · cuenta regresiva dinámica en cliente desde `Evento.fecha` (días/horas/min/seg, `00` si la fecha ya pasó o es inválida) · galería/cronograma/mensaje de padres/footer · tipografía self-hosted · ruta real `/invitacion/[token]` con Postgres **· RSVP funcional transaccional e irreversible · seed de desarrollo** · **Panel de administración + login del organizador con Auth.js v5**: provider **Credentials** (email + contraseña) con sesión **JWT** (sin adaptador, sin tablas `Account`/`Session`), contraseñas verificadas con **bcryptjs**; **login** (`/login`) y **logout** desde el header del panel; **`/panel` protegido** por `proxy.ts` + validación server-side en el layout; **autorización** server-side por `Usuario.id` de la sesión para resolver `Evento.usuarioId`; seed de desarrollo con contraseña **hasheada** (bcrypt) · **CRUD de invitaciones desde el panel** (lista, crear, editar, eliminar) con token aleatorio server-side, URL estable, solo lectura para **edición** cuando `respondida` y **eliminación administrativa de respondidas** con confirmación reforzada (requiere escribir `ELIMINAR`), seguridad por `Evento.usuarioId` de sesión y **compartir por WhatsApp** vía `wa.me` con texto prellenado (§10) · **Dashboard de conteo** en `/panel` (solo lectura, con métricas agregadas del evento derivado de la sesión) — §11 · **Configuración editable del evento** en `/panel/configuracion` (datos generales, fecha/RSVP, ceremonia, recepción, protocolo, cronograma y selector limitado de plantilla) con **vista previa** en `/panel/configuracion/vista-previa` que **reutiliza el componente público** `EleganteEucalipto` (no es un modo separado) — §12 · **Foto principal + galería editable** con **UploadThing v7** (1 principal, máx 6 en galería con orden y borrado físico) y **galería pública 2×3** — §13 · **Regalos y mesas de regalo** (opcional con `mostrar`, mensaje, datos bancarios, número de evento y hasta 5 mesas con URL https:// y borrado/orden) — §14 · **Pulido funcional de invitación pública** (mensaje de padres configurable con fallback, nuevo orden de secciones, ubicaciones con Google Maps Search, visor ligero de galería) — §15.
 
 **Pendiente:**
 - Plantillas 2, 3 y 4 (`CLASICA_DORADA`, `PASTEL_ROMANTICA`, `MODERNA_MINIMAL`).
-- Revisión manual en viewport 375 px y pruebas con datos reales del cliente.
+- Pruebas con datos reales del cliente (la revisión visual del panel a 375 px quedó aprobada — §15.1).
 - Las 11 pruebas manuales de RSVP del plan (todos/algunos/nadie, doble clic, dos pestañas, token inexistente, id ajeno, ya respondida, error de BD, recarga, demo inerte).
+- Pruebas manuales del visor de galería (toque a 375 px, Escape, tap fuera, scroll, navegación, sin recorte, retorno de foco) — ver §15.

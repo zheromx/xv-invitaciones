@@ -46,6 +46,7 @@ model Evento {
   nombrePadre       String?
   nombreMadre       String?
   nombrePadrinos    String?      // opcional, texto libre por ahora
+  mensajePadres     String?      // mensaje personalizable del bloque de padres
 
   fecha             DateTime
   fechaLimiteRsvp   DateTime?    // fecha límite de respuesta, solo informativa

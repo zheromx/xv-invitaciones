@@ -64,6 +64,7 @@ export default async function PaginaConfiguracionEvento() {
     nombrePadre: evento.nombrePadre ?? "",
     nombreMadre: evento.nombreMadre ?? "",
     nombrePadrinos: evento.nombrePadrinos ?? "",
+    mensajePadres: evento.mensajePadres ?? "",
     fecha: aDatetimeLocal(evento.fecha),
     fechaLimiteRsvp: aFechaDia(evento.fechaLimiteRsvp),
     tieneMisa: evento.tieneMisa,

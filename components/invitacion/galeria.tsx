@@ -1,6 +1,6 @@
-import Image from "next/image";
 import type { DatosEvento } from "@/lib/evento";
 import { MAX_FOTOS_GALERIA } from "@/lib/imagenes-evento";
+import { GaleriaInteractiva } from "@/components/invitacion/galeria-interactiva";
 
 function Ramita({ className }: { className?: string }) {
   return (
@@ -38,6 +38,8 @@ const VARIANTES = [
   "from-eucalipto-300 to-eucalipto-600",
 ];
 
+// Server Component: mantiene el grid 2×3 y los placeholders no interactivos.
+// Las fotos reales se delegan al componente cliente aislado del visor.
 export function Galeria({ evento }: { evento: DatosEvento }) {
   const fotos = [...evento.galeria]
     .sort((a, b) => a.orden - b.orden)
@@ -45,13 +47,11 @@ export function Galeria({ evento }: { evento: DatosEvento }) {
 
   if (fotos.length === 0) return null;
 
-  // Composición 2 columnas × hasta 3 filas (máximo 6): se muestran las fotos
-  // reales y las posiciones faltantes se completan con placeholders locales,
-  // conservando la paleta y el ADN de la plantilla.
-  const posiciones = Array.from(
-    { length: MAX_FOTOS_GALERIA },
-    (_, indice) => fotos[indice] ?? null
-  );
+  const reales = fotos
+    .filter((foto): foto is { url: string; orden: number } => Boolean(foto.url))
+    .map((foto, indice) => ({ url: foto.url, alt: `Recuerdo ${indice + 1}` }));
+
+  const totalPlaceholders = MAX_FOTOS_GALERIA - reales.length;
 
   return (
     <section className="px-5 text-center">
@@ -60,31 +60,20 @@ export function Galeria({ evento }: { evento: DatosEvento }) {
       </p>
       <h2 className="mt-1 font-serif text-2xl text-eucalipto-700">Galería</h2>
       <div className="mt-5 grid grid-cols-2 gap-3">
-        {posiciones.map((foto, indice) =>
-          foto && foto.url ? (
+        <GaleriaInteractiva fotos={reales} />
+        {Array.from({ length: totalPlaceholders }, (_, indice) => {
+          const posicion = reales.length + indice;
+          return (
             <div
-              key={foto.url || indice}
-              className="relative aspect-square overflow-hidden rounded-xl shadow-sm"
-            >
-              <Image
-                src={foto.url}
-                alt={`Recuerdo ${indice + 1}`}
-                fill
-                sizes="(max-width: 420px) 45vw, 200px"
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div
-              key={`placeholder-${indice}`}
+              key={`placeholder-${posicion}`}
               className={`flex aspect-square items-center justify-center rounded-xl bg-gradient-to-br ${
-                VARIANTES[indice % VARIANTES.length]
+                VARIANTES[posicion % VARIANTES.length]
               } shadow-sm`}
             >
               <Ramita className="h-9 w-9 text-marfil/80" />
             </div>
-          )
-        )}
+          );
+        })}
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { Church, Clock, MapPin, Shirt, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import type { DatosEvento } from "@/lib/evento";
+import { urlMapaGoogle } from "@/lib/ubicaciones";
 
 type BloqueProps = {
   icono: ReactNode;
@@ -12,6 +13,7 @@ type BloqueProps = {
 };
 
 function Bloque({ icono, eyebrow, titulo, hora, lugar, direccion }: BloqueProps) {
+  const urlMapa = urlMapaGoogle(direccion);
   return (
     <div className="flex flex-col items-center rounded-2xl border border-dorado/25 bg-marfil-osc px-5 py-6 text-center">
       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-eucalipto-200 text-eucalipto-700">
@@ -27,13 +29,17 @@ function Bloque({ icono, eyebrow, titulo, hora, lugar, direccion }: BloqueProps)
       </span>
       <p className="mt-3 text-[15px] font-medium text-zinc-800">{lugar}</p>
       <p className="mt-1 text-xs leading-5 text-zinc-500">{direccion}</p>
-      <button
-        type="button"
-        className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-eucalipto-700 text-sm font-semibold text-white"
-      >
-        <MapPin className="h-4 w-4" />
-        Ver ubicación
-      </button>
+      {urlMapa && (
+        <a
+          href={urlMapa}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-eucalipto-700 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+        >
+          <MapPin className="h-4 w-4" />
+          Ver ubicación
+        </a>
+      )}
     </div>
   );
 }

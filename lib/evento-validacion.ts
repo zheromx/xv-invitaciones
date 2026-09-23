@@ -10,6 +10,7 @@ import { esPlantillaDisponible, PLANTILLA_PREDETERMINADA } from "./plantillas";
 export const LIMITES_EVENTO = {
   nombre: 120,
   padrinos: 200,
+  mensajePadres: 1000,
   lugar: 200,
   direccion: 200,
   hora: 40,
@@ -96,6 +97,9 @@ export function parsearDatosEvento(
   const nombrePadrinos = texto(formData, "nombrePadrinos");
   if (nombrePadrinos.length > LIMITES_EVENTO.padrinos) return null;
 
+  const mensajePadres = texto(formData, "mensajePadres");
+  if (mensajePadres.length > LIMITES_EVENTO.mensajePadres) return null;
+
   const fecha = parsearFechaHora(texto(formData, "fecha"));
   if (!fecha) return null;
   const fechaLimiteBruta = texto(formData, "fechaLimiteRsvp");
@@ -144,6 +148,7 @@ export function parsearDatosEvento(
     nombrePadre: nombrePadre || null,
     nombreMadre: nombreMadre || null,
     nombrePadrinos: nombrePadrinos || null,
+    mensajePadres: mensajePadres || null,
     fecha,
     fechaLimiteRsvp,
     tieneMisa,

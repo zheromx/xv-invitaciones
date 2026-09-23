@@ -25,17 +25,17 @@ export function EleganteEucalipto({
       <main className="mx-auto flex w-full max-w-[420px] flex-col gap-5 bg-marfil pb-8">
         <Portada evento={evento} />
         <MensajePadres evento={evento} />
-        <DetallesEvento evento={evento} />
         <CuentaRegresiva evento={evento} />
-        <Cronograma evento={evento} />
-        <Galeria evento={evento} />
-        <Regalos evento={evento} />
         <Rsvp
           evento={evento}
           invitacion={invitacion}
           demostracion={demostracion}
           token={token}
         />
+        <DetallesEvento evento={evento} />
+        <Cronograma evento={evento} />
+        <Galeria evento={evento} />
+        <Regalos evento={evento} />
         <FooterBotanico evento={evento} />
       </main>
     </div>

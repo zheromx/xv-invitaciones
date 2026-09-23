@@ -20,6 +20,7 @@ export type DatosEventoActualizables = {
   nombrePadre: string | null;
   nombreMadre: string | null;
   nombrePadrinos: string | null;
+  mensajePadres: string | null;
   fecha: Date;
   fechaLimiteRsvp: Date | null;
   tieneMisa: boolean;
@@ -72,6 +73,7 @@ export async function ejecutarActualizarEvento(
           nombrePadre: datos.nombrePadre,
           nombreMadre: datos.nombreMadre,
           nombrePadrinos: datos.nombrePadrinos,
+          mensajePadres: datos.mensajePadres,
           fecha: datos.fecha,
           fechaLimiteRsvp: datos.fechaLimiteRsvp,
           tieneMisa,

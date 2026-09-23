@@ -29,6 +29,7 @@ export type DatosEvento = {
   nombreQuinceanera: string;
   nombrePadre: string | null;
   nombreMadre: string | null;
+  mensajePadres?: string | null;
   fotoPrincipalUrl?: string | null;
   fecha: Date;
   fechaLimiteRsvp: Date | null;
