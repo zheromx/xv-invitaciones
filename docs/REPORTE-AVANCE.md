@@ -471,3 +471,16 @@ La regla operativa persistente vive en **`AGENTS.md`** → sección **"Protecci�
 - Pruebas manuales del visor de galería (toque a 375 px, Escape, tap fuera, scroll, navegación, sin recorte, retorno de foco) — ver §15.
 
 > **Nota operativa:** las futuras verificaciones rutinarias **no** deben incluir `seed`, `reset`, `db push` ni comandos de escritura sobre datos sin autorización explícita. Ver `AGENTS.md` → sección **"Protección de datos de desarrollo local"**.
+
+---
+
+## 17. Infraestructura local: Supabase + actualización de Prisma
+
+Se reemplazó **Prisma Postgres** por **Supabase PostgreSQL** como base de desarrollo, y se actualizó **Prisma ORM** para compatibilidad con endpoints pooled.
+
+- **Prisma 6.12.0 → 6.19.3** (`prisma` y `@prisma/client`, fijados exactos en `package.json`/`package-lock.json`). No hubo cambios de schema, migraciones ni dependencias de base adicionales.
+- **Infraestructura local:** `DATABASE_URL` usa el **Session pooler** de Supabase y `DIRECT_URL` la **conexión directa**. Las URLs viven solo en `.env` local (ignorado por Git); no se versionan.
+- **Causa raíz del `P2024`/`P2028` previo:** el endpoint **pooled de Prisma Postgres** tenía latencias de conexión en frío muy altas (lecturas de hasta ~32 s; una consulta aislada de ~91.9 s), lo que provocaba timeouts del pool local (`P2024`) y de arranque de transacción (`P2028`). **No era el código ni las transacciones.**
+- **Validado contra Supabase** (base nueva con la misma estructura, seed idempotente aplicado): panel, configuración de evento, regalos, vista previa, invitación pública y **UploadThing** respondieron correctamente y **sin `P2024`/`P2028`**, con latencias **sub-2 s**.
+- **Estado del código:** `lib/evento-nucleo.ts` quedó **como estaba** (transacción interactiva sin `maxWait`/`timeout` extra); los parámetros `connect_timeout`, `pool_timeout` y `max_idle_connection_lifetime` agregados temporalmente para Prisma Postgres se **retiraron** de `DATABASE_URL`.
+- **Nota:** no se ejecutó `prisma migrate status` contra Supabase porque su estructura se aplicó manualmente y no incluye el historial `_prisma_migrations`.
