@@ -71,9 +71,11 @@ export default async function PaginaConfiguracionEvento() {
     misaLugar: evento.misaLugar ?? "",
     misaDireccion: evento.misaDireccion ?? "",
     misaHora: evento.misaHora ?? "",
+    misaMapaUrl: evento.misaMapaUrl ?? "",
     recepcionLugar: evento.recepcionLugar,
     recepcionDireccion: evento.recepcionDireccion,
     recepcionHora: evento.recepcionHora,
+    recepcionMapaUrl: evento.recepcionMapaUrl ?? "",
     codigoVestimenta: evento.codigoVestimenta ?? "",
     infoAdicional: evento.infoAdicional ?? "",
     plantilla: evento.plantilla,
@@ -110,6 +112,9 @@ export default async function PaginaConfiguracionEvento() {
 
       <BloqueImagenes
         principalUrl={imagenes?.fotoPrincipalUrl ?? null}
+        misaFotoUrl={imagenes?.misaFotoUrl ?? null}
+        recepcionFotoUrl={imagenes?.recepcionFotoUrl ?? null}
+        tieneMisa={evento.tieneMisa}
         galeria={imagenes?.fotosGaleria ?? []}
       />
 

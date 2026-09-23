@@ -37,9 +37,13 @@ export type DatosEvento = {
   misaLugar: string | null;
   misaDireccion: string | null;
   misaHora: string | null;
+  misaMapaUrl?: string | null;
+  misaFotoUrl?: string | null;
   recepcionLugar: string;
   recepcionDireccion: string;
   recepcionHora: string;
+  recepcionMapaUrl?: string | null;
+  recepcionFotoUrl?: string | null;
   codigoVestimenta: string | null;
   infoAdicional: string | null;
   cronograma: MomentoEvento[];

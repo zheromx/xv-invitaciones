@@ -40,9 +40,11 @@ export type ValoresInicialesEvento = {
   misaLugar: string;
   misaDireccion: string;
   misaHora: string;
+  misaMapaUrl: string;
   recepcionLugar: string;
   recepcionDireccion: string;
   recepcionHora: string;
+  recepcionMapaUrl: string;
   codigoVestimenta: string;
   infoAdicional: string;
   plantilla: string;
@@ -316,6 +318,23 @@ export function FormularioEvento({
                   className={claseInput}
                 />
               </label>
+              <label className={claseEtiqueta}>
+                <span className={claseTitulo}>
+                  URL de Google Maps (opcional)
+                </span>
+                <input
+                  type="url"
+                  name="misaMapaUrl"
+                  defaultValue={inicial.misaMapaUrl}
+                  maxLength={2048}
+                  placeholder="https://maps.app.goo.gl/…"
+                  className={claseInput}
+                />
+                <span className="mt-1 block text-[11px] text-zinc-400">
+                  Pega el enlace exacto de “Compartir” de Google Maps. Si lo
+                  dejas vacío, se usará una búsqueda por la dirección.
+                </span>
+              </label>
             </div>
           )}
         </Seccion>
@@ -360,6 +379,21 @@ export function FormularioEvento({
               required
               className={claseInput}
             />
+          </label>
+          <label className={claseEtiqueta}>
+            <span className={claseTitulo}>URL de Google Maps (opcional)</span>
+            <input
+              type="url"
+              name="recepcionMapaUrl"
+              defaultValue={inicial.recepcionMapaUrl}
+              maxLength={2048}
+              placeholder="https://maps.app.goo.gl/…"
+              className={claseInput}
+            />
+            <span className="mt-1 block text-[11px] text-zinc-400">
+              Pega el enlace exacto de “Compartir” de Google Maps. Si lo dejas
+              vacío, se usará una búsqueda por la dirección.
+            </span>
           </label>
         </Seccion>
 

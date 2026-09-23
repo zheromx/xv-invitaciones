@@ -1,7 +1,8 @@
+import Image from "next/image";
 import { Church, Clock, MapPin, Shirt, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import type { DatosEvento } from "@/lib/evento";
-import { urlMapaGoogle } from "@/lib/ubicaciones";
+import { resolverUrlMapa } from "@/lib/ubicaciones";
 
 type BloqueProps = {
   icono: ReactNode;
@@ -10,12 +11,33 @@ type BloqueProps = {
   hora: string;
   lugar: string;
   direccion: string;
+  urlMapa: string | null;
+  fotoUrl?: string | null;
 };
 
-function Bloque({ icono, eyebrow, titulo, hora, lugar, direccion }: BloqueProps) {
-  const urlMapa = urlMapaGoogle(direccion);
+function Bloque({
+  icono,
+  eyebrow,
+  titulo,
+  hora,
+  lugar,
+  direccion,
+  urlMapa,
+  fotoUrl,
+}: BloqueProps) {
   return (
     <div className="flex flex-col items-center rounded-2xl border border-dorado/25 bg-marfil-osc px-5 py-6 text-center">
+      {fotoUrl && (
+        <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl">
+          <Image
+            src={fotoUrl}
+            alt={titulo}
+            fill
+            sizes="(max-width: 420px) 90vw, 380px"
+            className="object-cover"
+          />
+        </div>
+      )}
       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-eucalipto-200 text-eucalipto-700">
         {icono}
       </span>
@@ -64,6 +86,8 @@ export function DetallesEvento({ evento }: { evento: DatosEvento }) {
           hora={evento.misaHora ?? ""}
           lugar={evento.misaLugar}
           direccion={evento.misaDireccion ?? ""}
+          urlMapa={resolverUrlMapa(evento.misaMapaUrl, evento.misaDireccion)}
+          fotoUrl={evento.misaFotoUrl}
         />
       )}
       <Bloque
@@ -73,6 +97,11 @@ export function DetallesEvento({ evento }: { evento: DatosEvento }) {
         hora={evento.recepcionHora}
         lugar={evento.recepcionLugar}
         direccion={evento.recepcionDireccion}
+        urlMapa={resolverUrlMapa(
+          evento.recepcionMapaUrl,
+          evento.recepcionDireccion
+        )}
+        fotoUrl={evento.recepcionFotoUrl}
       />
 
       {(evento.codigoVestimenta || evento.infoAdicional) && (

@@ -3,6 +3,7 @@ import type {
   MomentoEntrada,
 } from "./evento-nucleo";
 import { esPlantillaDisponible, PLANTILLA_PREDETERMINADA } from "./plantillas";
+import { urlMapaGoogleValida } from "./ubicaciones";
 
 // Validación runtime pura (sin Next ni Prisma): transforma el FormData del
 // navegador en datos tipados y validados. Devuelve null si algo es inválido,
@@ -13,6 +14,7 @@ export const LIMITES_EVENTO = {
   mensajePadres: 1000,
   lugar: 200,
   direccion: 200,
+  urlMapa: 2048,
   hora: 40,
   vestimenta: 200,
   info: 500,
@@ -121,6 +123,15 @@ export function parsearDatosEvento(
     }
     if (!misaHora || misaHora.length > LIMITES_EVENTO.hora) return null;
   }
+  const misaMapaUrlBruta = texto(formData, "misaMapaUrl");
+  if (
+    tieneMisa &&
+    misaMapaUrlBruta &&
+    (misaMapaUrlBruta.length > LIMITES_EVENTO.urlMapa ||
+      !urlMapaGoogleValida(misaMapaUrlBruta))
+  ) {
+    return null;
+  }
 
   const recepcionLugar = texto(formData, "recepcionLugar");
   if (!recepcionLugar || recepcionLugar.length > LIMITES_EVENTO.lugar) return null;
@@ -130,6 +141,14 @@ export function parsearDatosEvento(
   }
   const recepcionHora = texto(formData, "recepcionHora");
   if (!recepcionHora || recepcionHora.length > LIMITES_EVENTO.hora) return null;
+  const recepcionMapaUrlBruta = texto(formData, "recepcionMapaUrl");
+  if (
+    recepcionMapaUrlBruta &&
+    (recepcionMapaUrlBruta.length > LIMITES_EVENTO.urlMapa ||
+      !urlMapaGoogleValida(recepcionMapaUrlBruta))
+  ) {
+    return null;
+  }
 
   const codigoVestimenta = texto(formData, "codigoVestimenta");
   if (codigoVestimenta.length > LIMITES_EVENTO.vestimenta) return null;
@@ -155,9 +174,11 @@ export function parsearDatosEvento(
     misaLugar: tieneMisa ? misaLugar : null,
     misaDireccion: tieneMisa ? misaDireccion : null,
     misaHora: tieneMisa ? misaHora : null,
+    misaMapaUrl: tieneMisa ? misaMapaUrlBruta || null : null,
     recepcionLugar,
     recepcionDireccion,
     recepcionHora,
+    recepcionMapaUrl: recepcionMapaUrlBruta || null,
     codigoVestimenta: codigoVestimenta || null,
     infoAdicional: infoAdicional || null,
     momentos,

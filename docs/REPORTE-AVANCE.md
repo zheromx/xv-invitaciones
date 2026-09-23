@@ -484,3 +484,31 @@ Se reemplazó **Prisma Postgres** por **Supabase PostgreSQL** como base de desar
 - **Validado contra Supabase** (base nueva con la misma estructura, seed idempotente aplicado): panel, configuración de evento, regalos, vista previa, invitación pública y **UploadThing** respondieron correctamente y **sin `P2024`/`P2028`**, con latencias **sub-2 s**.
 - **Estado del código:** `lib/evento-nucleo.ts` quedó **como estaba** (transacción interactiva sin `maxWait`/`timeout` extra); los parámetros `connect_timeout`, `pool_timeout` y `max_idle_connection_lifetime` agregados temporalmente para Prisma Postgres se **retiraron** de `DATABASE_URL`.
 - **Nota:** no se ejecutó `prisma migrate status` contra Supabase porque su estructura se aplicó manualmente y no incluye el historial `_prisma_migrations`.
+
+---
+
+## 18. Ubicaciones exactas, fotos de sede y metadata dinámica
+
+Tres mejoras sobre la invitación pública y el panel de configuración. Ambas migraciones nuevas se aplicaron **manualmente** en Supabase (sin `_prisma_migrations`) y **no** modifican las migraciones previas.
+
+### 18.1 URLs exactas de Google Maps (misa y recepción)
+- **Migración** `20260923142006_add_urls_mapa_evento`: `Evento.misaMapaUrl TEXT NULL`, `Evento.recepcionMapaUrl TEXT NULL`.
+- **Validación** (`lib/ubicaciones.ts` → `urlMapaGoogleValida`): HTTPS obligatorio, sin credenciales, longitud ≤ 2048; hosts `maps.app.goo.gl`/`goo.gl` (con ruta) y `google.<tld>` o subdominios de Google (ruta debe iniciar `/maps`); rechaza `http`, `javascript`, `data`, hosts externos y malformadas.
+- **Prioridad** (`resolverUrlMapa`): URL explícita válida > búsqueda generada desde la dirección (`urlMapaGoogle`). Registros existentes sin URL → mismo comportamiento de antes.
+- **Panel:** inputs URL opcionales para ceremonia y recepción (vacío → `null`; inválido → `datos-invalidos`); con `tieneMisa=false`, `misaMapaUrl` se persiste como `null`.
+- **Validado:** 32/32 checks puros (URL + parseo) y 5/5 de núcleo (persistencia, `tieneMisa=false`, restauración de estado).
+
+### 18.2 Fotos opcionales de sede (ceremonia y recepción)
+- **Migración** `20260923144415_add_fotos_sede_evento`: `Evento.misaFotoUrl TEXT NULL`, `Evento.recepcionFotoUrl TEXT NULL`.
+- **UploadThing:** nueva ruta `fotoSede` (misma config: 1 archivo, 4 MB, JPG/PNG/WebP). El **slot** (`"misa"`/`"recepcion"`) se valida **server-side** en la Server Action.
+- **Núcleo/acciones:** `ejecutarGuardarFotoSede`/`ejecutarEliminarFotoSede` (autorizado por `usuarioId` de la sesión) y `guardarFotoSede`/`eliminarFotoSede` (validan `urlUploadThingValida` y hacen **borrado físico** del objeto anterior vía key derivada).
+- **Panel "8. Imágenes":** dos sub-bloques (ceremonia y recepción); el de misa solo se muestra si `tieneMisa`. Al apagar `tieneMisa` la foto **se conserva** en BD (no se borra el archivo ni se cambia el campo). Sin modelos/tablas de sede.
+- **Pública/preview:** **miniatura contextual** al inicio de cada tarjeta de sede (ancho completo, rounded, `object-cover`, ~16:10), **sin visor/modal**. Sin foto → se conserva el diseño actual.
+- **Validado:** 11/11 checks de núcleo (slots válidos/ inválidos, persistencia por columna, eliminación, restauración de estado).
+
+### 18.3 Metadata dinámica del título
+- `app/invitacion/[token]/page.tsx`: nuevo `generateMetadata` → `XV de {evento.nombreQuinceanera} | Invitación` (mismo dato que renderiza la página).
+- Token inexistente → `generateMetadata` devuelve `{}` (no lanza) y la página conserva su `notFound()` y el 404 propio; sin 500.
+- `lib/invitacion.ts`: `obtenerInvitacionPorToken` envuelto en `cache()` de React → **una sola consulta** por request entre `generateMetadata` y el render (firma, query, mapper y contrato intactos).
+
+**Validaciones (globales):** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.

@@ -26,9 +26,11 @@ export async function obtenerEventoConfiguracionSesion() {
       misaLugar: true,
       misaDireccion: true,
       misaHora: true,
+      misaMapaUrl: true,
       recepcionLugar: true,
       recepcionDireccion: true,
       recepcionHora: true,
+      recepcionMapaUrl: true,
       codigoVestimenta: true,
       infoAdicional: true,
       cronograma: {
@@ -53,6 +55,8 @@ export async function obtenerImagenesEventoSesion() {
     where: { usuarioId: sesion.user.id },
     select: {
       fotoPrincipalUrl: true,
+      misaFotoUrl: true,
+      recepcionFotoUrl: true,
       fotosGaleria: {
         orderBy: { orden: "asc" },
         select: { id: true, url: true, orden: true },
@@ -134,9 +138,13 @@ export async function obtenerVistaPreviaSesion(): Promise<{
     misaLugar: evento.misaLugar,
     misaDireccion: evento.misaDireccion,
     misaHora: evento.misaHora,
+    misaMapaUrl: evento.misaMapaUrl,
+    misaFotoUrl: evento.misaFotoUrl,
     recepcionLugar: evento.recepcionLugar,
     recepcionDireccion: evento.recepcionDireccion,
     recepcionHora: evento.recepcionHora,
+    recepcionMapaUrl: evento.recepcionMapaUrl,
+    recepcionFotoUrl: evento.recepcionFotoUrl,
     codigoVestimenta: evento.codigoVestimenta,
     infoAdicional: evento.infoAdicional,
     cronograma: evento.cronograma.map((momento) => ({

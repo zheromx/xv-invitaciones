@@ -5,6 +5,7 @@
 
 export const MAX_FOTOS_GALERIA = 6;
 export const MAX_FOTO_PRINCIPAL = 1;
+export const MAX_FOTO_SEDE = 1;
 
 // 4 MB expresados en bytes y en la etiqueta que espera UploadThing.
 export const MAX_TAMANO_IMAGEN_BYTES = 4 * 1024 * 1024;

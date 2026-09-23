@@ -27,9 +27,11 @@ export type DatosEventoActualizables = {
   misaLugar: string | null;
   misaDireccion: string | null;
   misaHora: string | null;
+  misaMapaUrl: string | null;
   recepcionLugar: string;
   recepcionDireccion: string;
   recepcionHora: string;
+  recepcionMapaUrl: string | null;
   codigoVestimenta: string | null;
   infoAdicional: string | null;
   momentos: MomentoEntrada[];
@@ -81,9 +83,11 @@ export async function ejecutarActualizarEvento(
           misaLugar: tieneMisa ? datos.misaLugar : null,
           misaDireccion: tieneMisa ? datos.misaDireccion : null,
           misaHora: tieneMisa ? datos.misaHora : null,
+          misaMapaUrl: tieneMisa ? datos.misaMapaUrl : null,
           recepcionLugar: datos.recepcionLugar,
           recepcionDireccion: datos.recepcionDireccion,
           recepcionHora: datos.recepcionHora,
+          recepcionMapaUrl: datos.recepcionMapaUrl,
           codigoVestimenta: datos.codigoVestimenta,
           infoAdicional: datos.infoAdicional,
         },

@@ -14,7 +14,9 @@ import {
   agregarFotoGaleria,
   eliminarFotoGaleria,
   eliminarFotoPrincipal,
+  eliminarFotoSede,
   guardarFotoPrincipal,
+  guardarFotoSede,
   moverFotoGaleria,
   type ResultadoImagen,
 } from "@/lib/acciones-imagenes";
@@ -43,9 +45,15 @@ const ACEPTA = "image/jpeg,image/png,image/webp";
 
 export function BloqueImagenes({
   principalUrl,
+  misaFotoUrl,
+  recepcionFotoUrl,
+  tieneMisa,
   galeria,
 }: {
   principalUrl: string | null;
+  misaFotoUrl: string | null;
+  recepcionFotoUrl: string | null;
+  tieneMisa: boolean;
   galeria: FotoGaleriaVista[];
 }) {
   const router = useRouter();
@@ -54,6 +62,8 @@ export function BloqueImagenes({
   const [pendiente, startTransition] = useTransition();
   const principalRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
+  const misaFotoRef = useRef<HTMLInputElement>(null);
+  const recepcionFotoRef = useRef<HTMLInputElement>(null);
 
   const ejecutarAccion = (
     accion: () => Promise<ResultadoImagen>,
@@ -102,7 +112,44 @@ export function BloqueImagenes({
       },
     });
 
-  const subiendo = subiendoPrincipal || subiendoGaleria;
+  const { startUpload: subirSedeMisa, isUploading: subiendoMisa } =
+    useUploadThing("fotoSede", {
+      onClientUploadComplete: (res) => {
+        const url = res?.[0]?.serverData?.url ?? res?.[0]?.ufsUrl;
+        if (!url) {
+          setError("La subida no devolvió una URL válida.");
+          return;
+        }
+        ejecutarAccion(
+          () => guardarFotoSede("misa", url),
+          "Foto de la ceremonia guardada."
+        );
+      },
+      onUploadError: (e) => {
+        setError(e?.message || "No se pudo subir la imagen.");
+      },
+    });
+
+  const { startUpload: subirSedeRecepcion, isUploading: subiendoRecepcion } =
+    useUploadThing("fotoSede", {
+      onClientUploadComplete: (res) => {
+        const url = res?.[0]?.serverData?.url ?? res?.[0]?.ufsUrl;
+        if (!url) {
+          setError("La subida no devolvió una URL válida.");
+          return;
+        }
+        ejecutarAccion(
+          () => guardarFotoSede("recepcion", url),
+          "Foto de la recepción guardada."
+        );
+      },
+      onUploadError: (e) => {
+        setError(e?.message || "No se pudo subir la imagen.");
+      },
+    });
+
+  const subiendo =
+    subiendoPrincipal || subiendoGaleria || subiendoMisa || subiendoRecepcion;
   const ocupado = pendiente || subiendo;
   const sinCupo = galeria.length >= MAX_FOTOS_GALERIA;
 
@@ -143,6 +190,16 @@ export function BloqueImagenes({
     "inline-flex h-10 items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
   const claseIcono =
     "flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white/90 text-zinc-600 shadow-sm hover:bg-white hover:text-eucalipto-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 disabled:cursor-not-allowed disabled:opacity-40";
+
+  const alElegirSede = (
+    evento: React.ChangeEvent<HTMLInputElement>,
+    subir: (files: File[]) => void
+  ) => {
+    const file = evento.target.files?.[0];
+    evento.target.value = "";
+    if (!file || !validarArchivo(file)) return;
+    void subir([file]);
+  };
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -210,6 +267,138 @@ export function BloqueImagenes({
                     ejecutarAccion(
                       () => eliminarFotoPrincipal(),
                       "Foto principal eliminada."
+                    )
+                  }
+                  disabled={ocupado}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Eliminar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {tieneMisa && (
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-800">
+              Foto de la ceremonia
+            </h3>
+            <p className="mt-0.5 text-[11px] text-zinc-400">
+              Opcional. Se muestra en la tarjeta de la ceremonia de la
+              invitación.
+            </p>
+            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div className="relative aspect-[16/10] w-40 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-eucalipto-50">
+                {misaFotoUrl ? (
+                  <Image
+                    src={misaFotoUrl}
+                    alt="Foto de la ceremonia"
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-[11px] text-zinc-400">
+                    Sin foto
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  ref={misaFotoRef}
+                  type="file"
+                  accept={ACEPTA}
+                  onChange={(evento) => alElegirSede(evento, subirSedeMisa)}
+                  className="sr-only"
+                  aria-label="Subir foto de la ceremonia"
+                />
+                <button
+                  type="button"
+                  onClick={() => misaFotoRef.current?.click()}
+                  disabled={ocupado}
+                  className={claseSecundario}
+                >
+                  {subiendoMisa ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="h-4 w-4" />
+                  )}
+                  {misaFotoUrl ? "Reemplazar" : "Subir foto"}
+                </button>
+                {misaFotoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutarAccion(
+                        () => eliminarFotoSede("misa"),
+                        "Foto de la ceremonia eliminada."
+                      )
+                    }
+                    disabled={ocupado}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Eliminar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-800">
+            Foto de la recepción
+          </h3>
+          <p className="mt-0.5 text-[11px] text-zinc-400">
+            Opcional. Se muestra en la tarjeta de la recepción de la invitación.
+          </p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="relative aspect-[16/10] w-40 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-eucalipto-50">
+              {recepcionFotoUrl ? (
+                <Image
+                  src={recepcionFotoUrl}
+                  alt="Foto de la recepción"
+                  fill
+                  sizes="160px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-[11px] text-zinc-400">
+                  Sin foto
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={recepcionFotoRef}
+                type="file"
+                accept={ACEPTA}
+                onChange={(evento) => alElegirSede(evento, subirSedeRecepcion)}
+                className="sr-only"
+                aria-label="Subir foto de la recepción"
+              />
+              <button
+                type="button"
+                onClick={() => recepcionFotoRef.current?.click()}
+                disabled={ocupado}
+                className={claseSecundario}
+              >
+                {subiendoRecepcion ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+                {recepcionFotoUrl ? "Reemplazar" : "Subir foto"}
+              </button>
+              {recepcionFotoUrl && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    ejecutarAccion(
+                      () => eliminarFotoSede("recepcion"),
+                      "Foto de la recepción eliminada."
                     )
                   }
                   disabled={ocupado}

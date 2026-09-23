@@ -49,6 +49,15 @@ export const nuestroFileRouter = {
       return { eventoId: evento.id };
     })
     .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),
+
+  // Una sola foto por operación para una sede (ceremonia o recepción). El slot
+  // ("misa"/"recepcion") se valida server-side en la Server Action que persiste.
+  fotoSede: f(limitesImagen)
+    .middleware(async () => {
+      const evento = await eventoDeSesion();
+      return { eventoId: evento.id };
+    })
+    .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),
 } satisfies FileRouter;
 
 export type NuestroFileRouter = typeof nuestroFileRouter;

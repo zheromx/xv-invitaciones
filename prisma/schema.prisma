@@ -56,11 +56,15 @@ model Evento {
   misaLugar         String?
   misaDireccion     String?
   misaHora          String?
+  misaMapaUrl       String?
+  misaFotoUrl       String?
 
   // Recepción
   recepcionLugar     String
   recepcionDireccion String
   recepcionHora      String
+  recepcionMapaUrl   String?
+  recepcionFotoUrl   String?
 
   codigoVestimenta  String?
   infoAdicional     String?      // ej. "no se admiten niños", estacionamiento, etc.

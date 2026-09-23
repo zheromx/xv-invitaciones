@@ -5,6 +5,7 @@ export type MotivoImagen =
   | "no-encontrada"
   | "no-autorizado"
   | "limite-galeria"
+  | "datos-invalidos"
   | "fallo";
 
 // Núcleo transaccional de imágenes (testeable sin Next ni UploadThing). Recibe
@@ -189,6 +190,84 @@ export async function ejecutarMoverFotoGaleria(
     });
   } catch (error) {
     console.error("Error al reordenar la galería:", error);
+    return { ok: false, motivo: "fallo" };
+  }
+}
+
+export type SlotSede = "misa" | "recepcion";
+
+function esSlotSede(valor: string): valor is SlotSede {
+  return valor === "misa" || valor === "recepcion";
+}
+
+// Foto opcional de una sede (ceremonia o recepción). El slot se valida aquí
+// (server-side); el cliente nunca elige la columna directamente.
+export async function ejecutarGuardarFotoSede(
+  usuarioId: string,
+  slot: string,
+  url: string
+): Promise<
+  | { ok: true; anterior: string | null }
+  | { ok: false; motivo: MotivoImagen }
+> {
+  if (!esSlotSede(slot)) return { ok: false, motivo: "datos-invalidos" };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const evento = await tx.evento.findFirst({
+        where: { usuarioId },
+        select: { id: true, misaFotoUrl: true, recepcionFotoUrl: true },
+      });
+      if (!evento) return { ok: false as const, motivo: "no-encontrada" as const };
+
+      const anterior =
+        slot === "misa" ? evento.misaFotoUrl : evento.recepcionFotoUrl;
+
+      await tx.evento.update({
+        where: { id: evento.id },
+        data:
+          slot === "misa"
+            ? { misaFotoUrl: url }
+            : { recepcionFotoUrl: url },
+      });
+      return { ok: true as const, anterior };
+    });
+  } catch (error) {
+    console.error("Error al guardar la foto de sede:", error);
+    return { ok: false, motivo: "fallo" };
+  }
+}
+
+export async function ejecutarEliminarFotoSede(
+  usuarioId: string,
+  slot: string
+): Promise<
+  | { ok: true; anterior: string | null }
+  | { ok: false; motivo: MotivoImagen }
+> {
+  if (!esSlotSede(slot)) return { ok: false, motivo: "datos-invalidos" };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const evento = await tx.evento.findFirst({
+        where: { usuarioId },
+        select: { id: true, misaFotoUrl: true, recepcionFotoUrl: true },
+      });
+      if (!evento) return { ok: false as const, motivo: "no-encontrada" as const };
+
+      const anterior =
+        slot === "misa" ? evento.misaFotoUrl : evento.recepcionFotoUrl;
+      if (!anterior) return { ok: true as const, anterior: null };
+
+      await tx.evento.update({
+        where: { id: evento.id },
+        data:
+          slot === "misa"
+            ? { misaFotoUrl: null }
+            : { recepcionFotoUrl: null },
+      });
+      return { ok: true as const, anterior };
+    });
+  } catch (error) {
+    console.error("Error al eliminar la foto de sede:", error);
     return { ok: false, motivo: "fallo" };
   }
 }
