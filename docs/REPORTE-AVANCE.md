@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `dbb55b3` — `chore: actualizar Prisma a 6.19.3` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `d82103b` — `feat: XV de Esther | Invitación Metadata Dinámica` · **Working tree:** limpio
 
 ---
 
