@@ -85,3 +85,11 @@ Si una tarea parece requerir algo de esta lista, avisa antes de implementarlo �
 - Prioriza que funcione correctamente en celulares gama baja y con conexión débil (imágenes ligeras, sin animaciones pesadas, sin autoplay de música).
 - La vista previa NO es una ruta ni un renderizado aparte: usa el mismo componente de plantilla que ve el invitado, alimentado con los datos actuales del evento (aunque estén incompletos). Evita construir un "modo preview" separado — es una fuente de bugs innecesaria dado el plazo.
 - Hay una fecha de envío real cercana. Prefiere soluciones simples y probadas sobre soluciones elegantes que tomen más tiempo.
+
+## Protección de datos de desarrollo local
+
+- La base local activa puede contener datos, invitaciones, RSVP y fotos cargados manualmente por el dueño.
+- Está prohibido ejecutar `npx prisma db seed`, `npx prisma migrate reset`, `npx prisma db push`, scripts de limpieza, `DELETE`/`TRUNCATE` masivos o cualquier acción que escriba, sustituya o elimine datos sin autorización explícita del dueño en el mismo mensaje.
+- "Seed idempotente" no equivale a "seguro para datos manuales".
+- Las verificaciones rutinarias permitidas son: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm run build`, `npx prisma migrate status`, `git status --short` y `git diff --stat`.
+- Antes de proponer o ejecutar una migración, mostrar el plan, aclarar su impacto sobre datos existentes y esperar autorización explícita.

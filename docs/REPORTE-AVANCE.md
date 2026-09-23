@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 21 de septiembre de 2026 · **Último commit:** `084ed64` — `docs: update progress report` · **Working tree:** cambios sin commit — **Pulido funcional de invitación pública**
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `f324f34` — `feat: pulir invitación pública y configuración de evento` · **Working tree:** limpio
 
 ---
 
