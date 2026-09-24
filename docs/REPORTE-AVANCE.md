@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `d0ff156` — `feat: metadata dinámica por token y pulido de detalles y cronograma de la invitación` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `0d51849` — `feat: música de fondo opcional (MP3) con control en la invitación pública` · **Working tree:** limpio
 
 ---
 
