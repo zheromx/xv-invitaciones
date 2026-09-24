@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `5e131b2` — `feat: pantalla de bienvenida tipo sobre cerrado con apertura ceremonial` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `850e97e` — `feat: revelado progresivo por scroll en las secciones` · **Working tree:** limpio
 
 ---
 
