@@ -28,11 +28,11 @@ export function Cronograma({ evento }: { evento: DatosEvento }) {
               key={momento.orden}
               style={
                 revelado
-                  ? { transitionDelay: `${Math.min(indice * 120, 600)}ms` }
+                  ? { transitionDelay: `${Math.min(indice * 450, 2250)}ms` }
                   : undefined
               }
-              className={`xv-revelar-item relative flex items-start gap-3 transition-[opacity,transform,translate] duration-[450ms] ease-out motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
-                revelado ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+              className={`xv-revelar-item relative flex items-start gap-3 transition-[opacity,transform,translate] duration-[1100ms] ease-in-out motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+                revelado ? "translate-y-0 opacity-100" : "translate-y-5 opacity-[0.15]"
               }`}
             >
               <span

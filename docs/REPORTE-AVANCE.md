@@ -536,7 +536,20 @@ Capa ligera de revelado al entrar cada bloque principal al viewport, más revela
 
 - **Wrapper reutilizable:** `components/invitacion/revelar.tsx` (client). Exporta el hook `useEnViewport()` (un `IntersectionObserver` por bloque, `threshold: 0.15`, `rootMargin: "0px 0px -8% 0px"`, `unobserve` al revelar y `disconnect` al desmontar) y el componente `Revelar` (estado `opacity-0 translate-y-4` → `opacity-100 translate-y-0`, `duration-500`, solo `opacity`/`translate`).
 - **Bloques envueltos** en `components/templates/elegante-eucalipto.tsx` (orden intacto): Portada, MensajePadres, CuentaRegresiva, DetallesEvento, Galeria, Regalos (solo si `infoRegalos.mostrar`) y FooterBotanico. **No** se envuelven Bienvenida ni Rsvp.
-- **Cronograma progresivo:** `components/invitacion/cronograma.tsx` pasó a client y usa el **mismo hook** sobre su `<section>`; header/tarjeta/línea quedan estáticos y cada `<li>` revela en orden con `opacity-0 translate-y-3` → visible, **450 ms**, `ease-out` y retraso `Math.min(indice * 120, 600)` ms (índices ≥ 6 comparten 600 ms). Se retiró el `<Revelar>` externo de Cronograma para evitar doble fade. Se conservan `<ol>/<li>` y el retorno `null` con 0 momentos.
+- **Cronograma progresivo:** `components/invitacion/cronograma.tsx` pasó a client y usa el **mismo hook** sobre su `<section>`; header/tarjeta/línea quedan estáticos y cada `<li>` revela en orden con `opacity-[0.15] translate-y-5` → visible, **1100 ms**, `ease-in-out` y retraso `Math.min(indice * 450, 2250)` ms (índices ≥ 6 comparten 2250 ms; una agenda de 6 momentos completa en ~3.35 s). Se retiró el `<Revelar>` externo de Cronograma para evitar doble fade. Se conservan `<ol>/<li>` y el retorno `null` con 0 momentos.
 - **Fallbacks:** con `prefers-reduced-motion: reduce` no se registra observer y todo queda visible por CSS (`motion-reduce:*`); si no existe `IntersectionObserver`, se revela de inmediato. Sin JavaScript, el `<noscript>` único fuerza `.xv-revelar,.xv-revelar-item{opacity:1;transform:none;translate:none}`.
 - **Nota técnica:** Tailwind v4 emite la propiedad `translate:`; por eso la transición es `transition-[opacity,transform,translate]` (solo opacidad y transform/translate).
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.
+
+---
+
+## 21. Metadata dinámica por token en la invitación pública
+
+La ruta real `/invitacion/[token]` generaba `title` dinámico, pero la `description` (y Open Graph/Twitter) se heredaban del layout de invitación, cuyo texto estaba fijo con “Valentina” (se veía en el preview de WhatsApp).
+
+- **`app/invitacion/[token]/page.tsx`:** `generateMetadata` ahora devuelve, cuando el token existe, `title` (`XV de {nombreQuinceanera} | Invitación`), `description` (`Te invitamos a celebrar los XV años de {nombreQuinceanera}`), `openGraph { title, description, type: "website" }` y `twitter { title, description }`.
+- **Token inexistente:** se conserva `return {}` (metadata vacía) y el `notFound()`/404 actual; `obtenerInvitacionPorToken` sigue envuelto en `cache()` ⇒ una sola consulta por request (sin 500).
+- **`app/invitacion/layout.tsx` no se toca:** su metadata estática (con “Valentina”) sirve a `/invitacion/demo`, cuyo mock es “Valentina”.
+- **Sin** imagen OG, `metadataBase`, schema, campos nuevos, librerías ni recursos externos.
+- **Copy:** `components/invitacion/detalles-evento.tsx` → el eyebrow de la ceremonia pasa de “Misa de acción de gracias” a “Acción de gracias”.
 - **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.

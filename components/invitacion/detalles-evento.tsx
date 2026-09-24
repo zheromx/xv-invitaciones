@@ -81,7 +81,7 @@ export function DetallesEvento({ evento }: { evento: DatosEvento }) {
       {evento.tieneMisa && evento.misaLugar && (
         <Bloque
           icono={<Church className="h-5 w-5" />}
-          eyebrow="Misa de acción de gracias"
+          eyebrow="Acción de gracias"
           titulo="Ceremonia religiosa"
           hora={evento.misaHora ?? ""}
           lugar={evento.misaLugar}

@@ -11,7 +11,17 @@ export async function generateMetadata({
   const { token } = await params;
   const datos = await obtenerInvitacionPorToken(token);
   if (!datos) return {};
-  return { title: `XV de ${datos.evento.nombreQuinceanera} | Invitación` };
+
+  const nombre = datos.evento.nombreQuinceanera;
+  const title = `XV de ${nombre} | Invitación`;
+  const description = `Te invitamos a celebrar los XV años de ${nombre}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    twitter: { title, description },
+  };
 }
 
 export default async function PaginaInvitacion({
