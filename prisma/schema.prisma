@@ -70,6 +70,7 @@ model Evento {
   infoAdicional     String?      // ej. "no se admiten niños", estacionamiento, etc.
 
   fotoPrincipalUrl  String?      // foto de portada de la invitación
+  musicaUrl         String?      // pista MP3 de fondo (opcional)
 
   cronograma        MomentoEvento[]
   fotosGaleria      FotoGaleria[]

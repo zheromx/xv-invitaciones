@@ -1,11 +1,17 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import type { FileSize } from "@uploadthing/shared";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   MAX_FOTO_PRINCIPAL,
   MAX_TAMANO_IMAGEN_ETIQUETA,
 } from "@/lib/imagenes-evento";
+import {
+  MAX_MUSICA_ARCHIVOS,
+  MAX_TAMANO_MUSICA_ETIQUETA,
+  MIME_MUSICA,
+} from "@/lib/musica-evento";
 
 const f = createUploadthing();
 
@@ -33,6 +39,15 @@ const limitesImagen = {
   },
 } as const;
 
+const limitesMusica = {
+  audio: {
+    // UploadThing tipa `maxFileSize` solo como potencias de 2; en runtime acepta
+    // cualquier `${n}${unit}` (lo parsea `fileSizeToBytes`), así que 12MB es válido.
+    maxFileSize: MAX_TAMANO_MUSICA_ETIQUETA as unknown as FileSize,
+    maxFileCount: MAX_MUSICA_ARCHIVOS,
+  },
+} as const;
+
 export const nuestroFileRouter = {
   // Una sola foto principal por operación.
   fotoPrincipal: f(limitesImagen)
@@ -55,6 +70,17 @@ export const nuestroFileRouter = {
   fotoSede: f(limitesImagen)
     .middleware(async () => {
       const evento = await eventoDeSesion();
+      return { eventoId: evento.id };
+    })
+    .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),
+
+  // Una sola pista de música (MP3) por operación.
+  musicaEvento: f(limitesMusica)
+    .middleware(async ({ files }) => {
+      const evento = await eventoDeSesion();
+      if (files[0]?.type !== MIME_MUSICA) {
+        throw new UploadThingError("Solo se admite MP3 (audio/mpeg)");
+      }
       return { eventoId: evento.id };
     })
     .onUploadComplete(async ({ file }) => ({ url: file.ufsUrl })),

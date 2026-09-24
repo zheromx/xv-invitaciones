@@ -1,4 +1,5 @@
 import type { DatosEvento, InvitacionDemo } from "@/lib/evento";
+import { AudioMusica } from "@/components/invitacion/audio-musica";
 import { Bienvenida } from "@/components/invitacion/bienvenida";
 import { Revelar } from "@/components/invitacion/revelar";
 import { Portada } from "@/components/invitacion/portada";
@@ -23,7 +24,11 @@ export function EleganteEucalipto({
   token?: string;
 }) {
   return (
-    <div className="min-h-full bg-marfil">
+    <AudioMusica
+      musicaUrl={evento.musicaUrl ?? null}
+      esReal={!demostracion && Boolean(token)}
+    >
+      <div className="min-h-full bg-marfil">
       <Bienvenida evento={evento} />
       <noscript
           dangerouslySetInnerHTML={{
@@ -68,6 +73,7 @@ export function EleganteEucalipto({
           <FooterBotanico evento={evento} />
         </Revelar>
       </main>
-    </div>
+      </div>
+    </AudioMusica>
   );
 }

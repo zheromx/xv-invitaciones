@@ -28,6 +28,7 @@ export const obtenerInvitacionPorToken = cache(async (token: string) => {
     nombreMadre: registro.evento.nombreMadre,
     mensajePadres: registro.evento.mensajePadres,
     fotoPrincipalUrl: registro.evento.fotoPrincipalUrl,
+    musicaUrl: registro.evento.musicaUrl,
     fecha: registro.evento.fecha,
     fechaLimiteRsvp: registro.evento.fechaLimiteRsvp,
     tieneMisa: registro.evento.tieneMisa,

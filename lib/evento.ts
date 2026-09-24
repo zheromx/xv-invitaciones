@@ -31,6 +31,7 @@ export type DatosEvento = {
   nombreMadre: string | null;
   mensajePadres?: string | null;
   fotoPrincipalUrl?: string | null;
+  musicaUrl?: string | null;
   fecha: Date;
   fechaLimiteRsvp: Date | null;
   tieneMisa: boolean;

@@ -553,3 +553,17 @@ La ruta real `/invitacion/[token]` generaba `title` dinámico, pero la `descript
 - **Sin** imagen OG, `metadataBase`, schema, campos nuevos, librerías ni recursos externos.
 - **Copy:** `components/invitacion/detalles-evento.tsx` → el eyebrow de la ceremonia pasa de “Misa de acción de gracias” a “Acción de gracias”.
 - **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.
+
+---
+
+## 22. Música de fondo opcional (MP3) con control en la invitación pública
+
+Pista de música opcional por Evento, subida con UploadThing y reproducida solo en la ruta pública real al abrir la invitación.
+
+- **Datos / migración:** `Evento.musicaUrl String?` (TEXT NULL). Migración `prisma/migrations/20260923233117_add_musica_url_to_evento/migration.sql` (`ALTER TABLE "Evento" ADD COLUMN "musicaUrl" TEXT;`), aditiva y nullable, sin backfill; aplicada **manualmente** en Supabase (sin `_prisma_migrations`).
+- **UploadThing:** ruta `musicaEvento` con `audio` (máx **1** archivo, **12 MB**, `audio/mpeg`); el `.middleware()` deriva el Evento de la sesión y rechaza MIME distinto de `audio/mpeg`. Nota: el tipo `FileSize` de UploadThing solo admite potencias de 2, pero el runtime parsea cualquier `${n}${unit}`, por lo que se fijó `"12MB"` con un cast de tipo confinado al valor.
+- **Núcleo/acciones:** `lib/musica-nucleo.ts` (`ejecutarGuardarMusica`/`ejecutarEliminarMusica`, derivan el Evento de `usuarioId`) y `lib/acciones-musica.ts` (`guardarMusica`/`eliminarMusica`: auth + `urlUploadThingValida` → núcleo → borrado físico `UTApi.deleteFiles` con key derivada server-side → revalidación). **DB primero**, borrado físico después.
+- **Panel:** bloque “9. Música” (`components/panel/musica-evento.tsx`) con subir/reemplazar/eliminar, validación cliente (MP3, ≤ 12 MB) y textos “MP3, máximo 12 MB”.
+- **Página pública:** `components/invitacion/audio-musica.tsx` (client) provee `<audio loop preload="none">` (sin autoplay ni prefetch) y un control **circular de 44×44** con iconos `Music2` (detenido) / `Pause` (reproduciendo), sin texto visible, con `aria-label`/`title` dinámicos. `components/invitacion/bienvenida.tsx` llama `iniciar()` **síncrono** dentro del clic de “Abrir invitación”; si `play()` falla se captura en silencio y el control queda en “Reproducir música”. El bloque se monta solo en la ruta real (`!demostracion && token && musicaUrl`); demo y vista previa sin audio/control.
+- **Preservado:** RSVP, token, Auth.js, Prisma (salvo el campo nuevo), rutas, galería, regalos, orden de secciones, reveal/cronograma y fallback sin JS. `prefers-reduced-motion` no altera el audio.
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde. Pendientes pruebas manuales (subir MP3, reproducción en móvil, bloqueo de `play()`, demo/preview sin audio).

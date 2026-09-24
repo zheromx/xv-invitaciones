@@ -10,6 +10,7 @@ import {
   type MouseEvent,
   type TransitionEvent,
 } from "react";
+import { useAudioMusica } from "@/components/invitacion/audio-musica";
 import type { DatosEvento } from "@/lib/evento";
 import { formatearFechaLarga } from "@/lib/evento";
 
@@ -89,6 +90,7 @@ export function Bienvenida({ evento }: { evento: DatosEvento }) {
     () => true,
     () => false
   );
+  const { iniciar } = useAudioMusica();
 
   // Bloqueo del scroll del documento mientras la bienvenida está visible.
   useEffect(() => {
@@ -145,8 +147,13 @@ export function Bienvenida({ evento }: { evento: DatosEvento }) {
   if (oculto) return null;
 
   const alAbrir = (eventoClick: MouseEvent<HTMLAnchorElement>) => {
+    if (abriendoRef.current) {
+      eventoClick.preventDefault();
+      return;
+    }
     eventoClick.preventDefault();
-    if (abriendoRef.current) return;
+    // Inicia la música de forma SÍNCRONA dentro del mismo gesto del usuario.
+    iniciar();
     const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     reducirRef.current = reducir;
     scrollPendiente.current = true;

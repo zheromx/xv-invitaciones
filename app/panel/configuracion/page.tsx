@@ -10,6 +10,7 @@ import {
 } from "@/components/panel/formulario-evento";
 import { BloqueImagenes } from "@/components/panel/imagenes-evento";
 import { BloqueRegalos } from "@/components/panel/regalos-evento";
+import { BloqueMusica } from "@/components/panel/musica-evento";
 
 export const dynamic = "force-dynamic";
 
@@ -132,6 +133,7 @@ export default async function PaginaConfiguracionEvento() {
             })) ?? [],
         }}
       />
+      <BloqueMusica musicaUrl={evento.musicaUrl ?? null} />
     </div>
   );
 }

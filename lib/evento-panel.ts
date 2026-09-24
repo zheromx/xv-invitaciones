@@ -33,6 +33,7 @@ export async function obtenerEventoConfiguracionSesion() {
       recepcionMapaUrl: true,
       codigoVestimenta: true,
       infoAdicional: true,
+      musicaUrl: true,
       cronograma: {
         orderBy: { orden: "asc" },
         select: { id: true, hora: true, titulo: true, icono: true, orden: true },
@@ -132,6 +133,7 @@ export async function obtenerVistaPreviaSesion(): Promise<{
     nombreMadre: evento.nombreMadre,
     mensajePadres: evento.mensajePadres,
     fotoPrincipalUrl: evento.fotoPrincipalUrl,
+    musicaUrl: evento.musicaUrl,
     fecha: evento.fecha,
     fechaLimiteRsvp: evento.fechaLimiteRsvp,
     tieneMisa: evento.tieneMisa,
