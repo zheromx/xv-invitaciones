@@ -1,5 +1,6 @@
 import type { DatosEvento, InvitacionDemo } from "@/lib/evento";
 import { Bienvenida } from "@/components/invitacion/bienvenida";
+import { Revelar } from "@/components/invitacion/revelar";
 import { Portada } from "@/components/invitacion/portada";
 import { MensajePadres } from "@/components/invitacion/mensaje-padres";
 import { DetallesEvento } from "@/components/invitacion/detalles-evento";
@@ -24,24 +25,48 @@ export function EleganteEucalipto({
   return (
     <div className="min-h-full bg-marfil">
       <Bienvenida evento={evento} />
+      <noscript
+          dangerouslySetInnerHTML={{
+            __html:
+              "<style>.xv-revelar,.xv-revelar-item{opacity:1!important;transform:none!important;translate:none!important}</style>",
+          }}
+      />
       <main
         id="invitacion"
         className="mx-auto flex w-full max-w-[420px] flex-col gap-5 bg-marfil pb-8"
       >
-        <Portada evento={evento} />
-        <MensajePadres evento={evento} />
-        <CuentaRegresiva evento={evento} />
+        <Revelar>
+          <Portada evento={evento} />
+        </Revelar>
+        <Revelar>
+          <MensajePadres evento={evento} />
+        </Revelar>
+        <Revelar>
+          <CuentaRegresiva evento={evento} />
+        </Revelar>
         <Rsvp
           evento={evento}
           invitacion={invitacion}
           demostracion={demostracion}
           token={token}
         />
-        <DetallesEvento evento={evento} />
+        <Revelar>
+          <DetallesEvento evento={evento} />
+        </Revelar>
         <Cronograma evento={evento} />
-        <Galeria evento={evento} />
-        <Regalos evento={evento} />
-        <FooterBotanico evento={evento} />
+        <Revelar>
+          <Galeria evento={evento} />
+        </Revelar>
+        {evento.infoRegalos?.mostrar ? (
+          <Revelar>
+            <Regalos evento={evento} />
+          </Revelar>
+        ) : (
+          <Regalos evento={evento} />
+        )}
+        <Revelar>
+          <FooterBotanico evento={evento} />
+        </Revelar>
       </main>
     </div>
   );

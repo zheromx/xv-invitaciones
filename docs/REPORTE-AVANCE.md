@@ -527,3 +527,16 @@ Bienvenida de altura de viewport que precede al contenido de la invitación, imp
 - **Anillo del sello:** base estática `ring-1 ring-dorado-claro/40` + pulso animado (`bg-dorado/45`, extensión `-inset-2.5`) con `@keyframes` local scoped, solo `opacity`/`transform` (escala ≤ 1.07, ciclo 2.5 s).
 - **Mismo comportamiento** en ruta real, demo y vista previa; RSVP inerte en demo/preview y RSVP real sin cambios.
 - **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde; verificado en el HTML servido (`duration-[1000ms]`, `cubic-bezier(0.4,0,0.2,1)`, `-translate-y-6`).
+
+---
+
+## 20. Revelado progresivo por scroll en las secciones
+
+Capa ligera de revelado al entrar cada bloque principal al viewport, más revelado escalonado de los momentos del cronograma.
+
+- **Wrapper reutilizable:** `components/invitacion/revelar.tsx` (client). Exporta el hook `useEnViewport()` (un `IntersectionObserver` por bloque, `threshold: 0.15`, `rootMargin: "0px 0px -8% 0px"`, `unobserve` al revelar y `disconnect` al desmontar) y el componente `Revelar` (estado `opacity-0 translate-y-4` → `opacity-100 translate-y-0`, `duration-500`, solo `opacity`/`translate`).
+- **Bloques envueltos** en `components/templates/elegante-eucalipto.tsx` (orden intacto): Portada, MensajePadres, CuentaRegresiva, DetallesEvento, Galeria, Regalos (solo si `infoRegalos.mostrar`) y FooterBotanico. **No** se envuelven Bienvenida ni Rsvp.
+- **Cronograma progresivo:** `components/invitacion/cronograma.tsx` pasó a client y usa el **mismo hook** sobre su `<section>`; header/tarjeta/línea quedan estáticos y cada `<li>` revela en orden con `opacity-0 translate-y-3` → visible, **450 ms**, `ease-out` y retraso `Math.min(indice * 120, 600)` ms (índices ≥ 6 comparten 600 ms). Se retiró el `<Revelar>` externo de Cronograma para evitar doble fade. Se conservan `<ol>/<li>` y el retorno `null` con 0 momentos.
+- **Fallbacks:** con `prefers-reduced-motion: reduce` no se registra observer y todo queda visible por CSS (`motion-reduce:*`); si no existe `IntersectionObserver`, se revela de inmediato. Sin JavaScript, el `<noscript>` único fuerza `.xv-revelar,.xv-revelar-item{opacity:1;transform:none;translate:none}`.
+- **Nota técnica:** Tailwind v4 emite la propiedad `translate:`; por eso la transición es `transition-[opacity,transform,translate]` (solo opacidad y transform/translate).
+- **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde.
