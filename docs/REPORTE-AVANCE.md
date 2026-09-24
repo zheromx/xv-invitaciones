@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `850e97e` — `feat: revelado progresivo por scroll en las secciones` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `d0ff156` — `feat: metadata dinámica por token y pulido de detalles y cronograma de la invitación` · **Working tree:** limpio
 
 ---
 
