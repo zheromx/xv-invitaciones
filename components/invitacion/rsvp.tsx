@@ -68,7 +68,7 @@ function SinResponder({ invitacion }: { invitacion: InvitacionDemo }) {
         className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-eucalipto-700 text-sm font-semibold text-white"
       >
         <CheckCircle2 className="h-4 w-4" />
-        Confirmar asistencia
+        Revisar respuesta
       </button>
       <span className="mt-2 inline-block text-xs text-eucalipto-600 underline underline-offset-4">
         No podré asistir

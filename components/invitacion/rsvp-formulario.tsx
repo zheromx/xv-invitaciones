@@ -1,13 +1,19 @@
 "use client";
 
-import { Check, CheckCircle2, ClipboardList, Info, Loader2 } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  Info,
+  ListChecks,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   confirmarAsistencia,
   type ResultadoRsvp,
 } from "@/lib/acciones-rsvp";
 import type { PersonaDemo } from "@/lib/evento";
+import { RsvpConfirmacion } from "@/components/invitacion/rsvp-confirmacion";
 
 const MENSAJES_ERROR: Record<
   Extract<ResultadoRsvp, { ok: false }>["motivo"],
@@ -32,7 +38,9 @@ export function RsvpFormulario({
     () => new Set(personas.filter((p) => p.asiste !== false).map((p) => p.id))
   );
   const [enviando, setEnviando] = useState(false);
+  const [revisando, setRevisando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const botonRevisionRef = useRef<HTMLButtonElement | null>(null);
 
   const alternar = (id: string) => {
     if (enviando) return;
@@ -45,6 +53,22 @@ export function RsvpFormulario({
     setError(null);
   };
 
+  // Abre la revisión: nunca llama a la Server Action.
+  const abrirRevision = useCallback(() => {
+    if (enviando) return;
+    setError(null);
+    setRevisando(true);
+  }, [enviando]);
+
+  // Cancela sin escribir y devuelve el foco al botón de revisión.
+  const cerrarRevision = useCallback(() => {
+    if (enviando) return;
+    setRevisando(false);
+    requestAnimationFrame(() => botonRevisionRef.current?.focus());
+  }, [enviando]);
+
+  // Única función que escribe. La invoca exclusivamente "Sí, enviar respuesta"
+  // del diálogo, con la misma selección que se acaba de revisar.
   const confirmar = async () => {
     if (enviando) return;
     setEnviando(true);
@@ -58,9 +82,12 @@ export function RsvpFormulario({
       return;
     }
     setEnviando(false);
+    setRevisando(false);
     setError(MENSAJES_ERROR[resultado.motivo]);
     if (resultado.motivo === "ya-respondida") {
       router.refresh();
+    } else {
+      requestAnimationFrame(() => botonRevisionRef.current?.focus());
     }
   };
 
@@ -123,17 +150,14 @@ export function RsvpFormulario({
         </p>
       )}
       <button
+        ref={botonRevisionRef}
         type="button"
-        onClick={confirmar}
+        onClick={abrirRevision}
         disabled={enviando}
         className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-eucalipto-700 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {enviando ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <CheckCircle2 className="h-4 w-4" />
-        )}
-        {enviando ? "Enviando…" : "Confirmar asistencia"}
+        <ListChecks className="h-4 w-4" />
+        Enviar respuesta
       </button>
       <button
         type="button"
@@ -146,6 +170,15 @@ export function RsvpFormulario({
       >
         No podré asistir
       </button>
+      {revisando && (
+        <RsvpConfirmacion
+          personas={personas}
+          seleccion={seleccion}
+          enviando={enviando}
+          onCancelar={cerrarRevision}
+          onEnviar={confirmar}
+        />
+      )}
     </>
   );
 }
