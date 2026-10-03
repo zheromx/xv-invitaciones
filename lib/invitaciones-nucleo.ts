@@ -23,6 +23,7 @@ export function esP2002(error: unknown): boolean {
 export async function ejecutarCrear(
   eventoId: string,
   titulo: string,
+  telefono: string | null,
   nombres: string[]
 ): Promise<"fallo" | null> {
   for (let intento = 0; intento < 5; intento++) {
@@ -30,6 +31,7 @@ export async function ejecutarCrear(
       await prisma.invitacion.create({
         data: {
           titulo,
+          telefono,
           eventoId,
           token: generarTokenInvitacion(),
           personas: { create: nombres.map((nombre) => ({ nombre })) },
@@ -50,6 +52,7 @@ export async function ejecutarEditar(
   eventoId: string,
   invitacionId: string,
   titulo: string,
+  telefono: string | null,
   personasConId: { personaId: string; nombre: string }[],
   eliminadas: string[]
 ): Promise<MotivoInvitacion | null> {
@@ -91,7 +94,7 @@ export async function ejecutarEditar(
 
       await tx.invitacion.update({
         where: { id: invitacionId },
-        data: { titulo },
+        data: { titulo, telefono },
       });
 
       for (const { personaId, nombre } of personasConId) {

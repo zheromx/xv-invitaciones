@@ -20,6 +20,7 @@ export default async function PaginaInvitaciones() {
       select: {
         id: true,
         titulo: true,
+        telefono: true,
         token: true,
         respondida: true,
         respondidaEn: true,
@@ -34,6 +35,7 @@ export default async function PaginaInvitaciones() {
         return {
           id: registro.id,
           titulo: registro.titulo,
+          telefono: registro.telefono,
           url: await urlPublicaInvitacion(registro.token),
           respondida: registro.respondida,
           totalPersonas: registro.personas.length,

@@ -144,6 +144,7 @@ model Invitacion {
   evento      Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 
   titulo      String    // "Familia Rodríguez" o "Juan Rodríguez"
+  telefono    String?   // contacto privado para wa.me (dígitos con prefijo 52); nunca público/metadata/RSVP
   token       String    @unique @default(cuid()) // largo y aleatorio: es la autenticación del invitado
 
   respondida  Boolean   @default(false)

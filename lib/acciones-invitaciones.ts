@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { obtenerEventoSegunSesion } from "@/lib/invitaciones-panel";
 import { ejecutarBorrar, ejecutarCrear, ejecutarEditar } from "@/lib/invitaciones-nucleo";
+import { normalizarTelefono } from "@/lib/telefono";
 
 export type ResultadoInvitacion =
   | { ok: true }
@@ -33,18 +34,31 @@ function extraerPersonas(formData: FormData): string[] | null {
   return resultados.length > 0 ? resultados : null;
 }
 
+function extraerTelefono(
+  formData: FormData
+): { ok: true; telefono: string | null } | { ok: false } {
+  const bruto = formData.get("telefono");
+  if (bruto === null) return { ok: true, telefono: null };
+  const texto = typeof bruto === "string" ? bruto.trim() : "";
+  if (!texto) return { ok: true, telefono: null };
+  const telefono = normalizarTelefono(texto);
+  if (!telefono) return { ok: false };
+  return { ok: true, telefono };
+}
+
 export async function crearInvitacion(
   _prev: unknown,
   formData: FormData
 ): Promise<ResultadoInvitacion> {
   const titulo = extraerTitulo(formData);
   const personas = extraerPersonas(formData);
-  if (!titulo || !personas) return { ok: false, motivo: "datos-invalidos" };
+  const telefono = extraerTelefono(formData);
+  if (!titulo || !personas || !telefono.ok) return { ok: false, motivo: "datos-invalidos" };
 
   const evento = await obtenerEventoSegunSesion();
   if (!evento) return { ok: false, motivo: "no-event" };
 
-  const resultado = await ejecutarCrear(evento.id, titulo, personas);
+  const resultado = await ejecutarCrear(evento.id, titulo, telefono.telefono, personas);
   if (resultado === null) {
     revalidatePath("/panel/invitaciones");
     return { ok: true };
@@ -62,12 +76,13 @@ export async function editarInvitacion(
 
   const titulo = extraerTitulo(formData);
   const personas = extraerPersonas(formData);
+  const telefono = extraerTelefono(formData);
   const eliminadas = formData
     .getAll("persona_eliminada")
     .filter((v): v is string => typeof v === "string")
     .map((v) => v.trim())
     .filter((v) => v.length > 0);
-  if (!titulo || !personas) return { ok: false, motivo: "datos-invalidos" };
+  if (!titulo || !personas || !telefono.ok) return { ok: false, motivo: "datos-invalidos" };
 
   const evento = await obtenerEventoSegunSesion();
   if (!evento) return { ok: false, motivo: "no-event" };
@@ -86,6 +101,7 @@ export async function editarInvitacion(
     evento.id,
     id,
     titulo,
+    telefono.telefono,
     personasConId,
     eliminadas
   );

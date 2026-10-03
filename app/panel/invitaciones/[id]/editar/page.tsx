@@ -25,6 +25,7 @@ export default async function PaginaEditarInvitacion({
       modo={detalle.respondida ? "solo-lectura" : "editar"}
       invitacionId={detalle.id}
       tituloInicial={detalle.titulo}
+      telefonoInicial={detalle.telefono ?? undefined}
       personasIniciales={detalle.personas.map((p) => ({
         id: p.id,
         nombre: p.nombre,

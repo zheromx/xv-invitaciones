@@ -17,6 +17,7 @@ export async function detalleInvitacionParaEditar(eventoId: string, invitacionId
       id: true,
       eventoId: true,
       titulo: true,
+      telefono: true,
       respondida: true,
       respondidaEn: true,
       token: true,

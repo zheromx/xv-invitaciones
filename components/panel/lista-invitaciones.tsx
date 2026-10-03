@@ -8,16 +8,19 @@ import {
   Lock,
   MessageCircleMore,
   Pencil,
+  Phone,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
 import { Fragment, useState } from "react";
 import { ConfirmacionBorrado } from "@/components/panel/confirmacion-borrado";
+import { formatearTelefono } from "@/lib/telefono";
 
 export type FilaInvitacion = {
   id: string;
   titulo: string;
+  telefono: string | null;
   url: string;
   respondida: boolean;
   totalPersonas: number;
@@ -59,10 +62,12 @@ export function ListaInvitaciones({
 
   const compartirWhatsApp = (fila: FilaInvitacion) => {
     const texto = `¡Hola ${fila.titulo}! Están invitados a mis XV años. Confirmen su asistencia aquí: ${fila.url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    const destino = fila.telefono ?? "";
+    window.open(`https://wa.me/${destino}?text=${encodeURIComponent(texto)}`, "_blank");
   };
 
   const consulta = query.trim().toLocaleLowerCase("es");
+  const consultaTelefono = consulta.replace(/\D/g, "");
   const visibles = invitaciones.filter((fila) => {
     const coincideFiltro =
       filtro === "todas" ||
@@ -71,7 +76,9 @@ export function ListaInvitaciones({
     const coincideTexto =
       !consulta ||
       fila.titulo.toLocaleLowerCase("es").includes(consulta) ||
-      fila.integrantes.toLocaleLowerCase("es").includes(consulta);
+      fila.integrantes.toLocaleLowerCase("es").includes(consulta) ||
+      (consultaTelefono.length > 0 &&
+        (fila.telefono ?? "").includes(consultaTelefono));
     return coincideFiltro && coincideTexto;
   });
 
@@ -149,6 +156,9 @@ export function ListaInvitaciones({
                       Familia o grupo
                     </th>
                     <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                      Contacto
+                    </th>
+                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Personas
                     </th>
                     <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
@@ -181,6 +191,16 @@ export function ListaInvitaciones({
                             </div>
                           </div>
                         </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        {fila.telefono ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs text-zinc-600">
+                            <Phone className="h-3.5 w-3.5 text-zinc-400" />
+                            {formatearTelefono(fila.telefono)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-zinc-400">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-zinc-800">
@@ -270,7 +290,7 @@ export function ListaInvitaciones({
                     {abiertaId === fila.id && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={6}
                           className="bg-red-50/40 px-4 py-3"
                           id={`confirmar-borrado-${fila.id}`}
                         >

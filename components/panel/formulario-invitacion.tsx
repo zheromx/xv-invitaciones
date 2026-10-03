@@ -9,6 +9,7 @@ import {
   type ResultadoInvitacion,
 } from "@/lib/acciones-invitaciones";
 import { ConfirmacionBorrado } from "@/components/panel/confirmacion-borrado";
+import { formatearTelefono } from "@/lib/telefono";
 
 export type PersonaInicial = { id?: string; nombre: string };
 
@@ -22,7 +23,7 @@ const MENSAJES: Record<
   "no-autorizado": "No tienes permiso para modificar esta invitación.",
   "ya-respondida": "Esta invitación ya fue confirmada y está en solo lectura.",
   "datos-invalidos":
-    "Revisa el título y la lista de personas (mínimo 1, máximo 25; sin nombres repetidos).",
+    "Revisa el título, el teléfono (10 dígitos, con 52 opcional; quita el 1 posterior al 52) y la lista de personas (mínimo 1, máximo 25; sin nombres repetidos).",
   "no-encontrada": "La invitación ya no existe.",
   fallo: "Ocurrió un error inesperado. Vuelve a intentarlo.",
 };
@@ -33,17 +34,22 @@ export function FormularioInvitacion({
   modo,
   invitacionId,
   tituloInicial,
+  telefonoInicial,
   personasIniciales,
   confirmadasIniciales,
 }: {
   modo: "crear" | "editar" | "solo-lectura";
   invitacionId?: string;
   tituloInicial?: string;
+  telefonoInicial?: string;
   personasIniciales?: PersonaInicial[];
   confirmadasIniciales?: number;
 }) {
   const router = useRouter();
   const [titulo, setTitulo] = useState(tituloInicial ?? "");
+  const [telefono, setTelefono] = useState(
+    telefonoInicial ? formatearTelefono(telefonoInicial) : ""
+  );
   const [filas, setFilas] = useState<Fila[]>(() => {
     const iniciales: PersonaInicial[] =
       personasIniciales && personasIniciales.length > 0
@@ -135,6 +141,26 @@ export function FormularioInvitacion({
             />
             <span className="mt-1 block text-[11px] text-zinc-400">
               Se muestra en el panel y en el saludo de la invitación pública.
+            </span>
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-semibold text-zinc-700">
+              Teléfono de contacto (opcional)
+            </span>
+            <input
+              type="tel"
+              name="telefono"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              placeholder="Ej. 933 987 6543"
+              inputMode="tel"
+              maxLength={20}
+              className="mt-1.5 h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-800 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2 disabled:opacity-70"
+            />
+            <span className="mt-1 block text-[11px] text-zinc-400">
+              Solo se usa para abrir WhatsApp con el número. Nunca se muestra en la
+              invitación ni en el RSVP. Formato: +52 933 987 6543.
             </span>
           </label>
 
