@@ -16,6 +16,7 @@ La unidad central es la **Invitación**, no el invitado individual. Una invitaci
 Evento
  └─ Invitación
      ├─ título            ("Familia Rodríguez" / "Juan Rodríguez")
+     ├─ teléfono          (opcional, privado, solo dirige el wa.me; nunca público)
      ├─ token único        (largo, aleatorio, no incremental — es la autenticación del invitado)
      ├─ respondida          (booleano)
      ├─ enviada_en          (fecha, para calcular el límite de respuesta)
@@ -31,6 +32,8 @@ Reglas de negocio no negociables para esta versión:
 - Cualquiera que abra el link puede marcar a cualquier nombre del grupo (no se restringe por "quién es quién" — normalmente una sola persona confirma por toda la familia).
 - Si la invitación no se responde antes de la fecha límite, se considera que **nadie de ese grupo asiste**. Esto es solo informativo por ahora: no hay vencimiento automático ni borrado automático. El cliente decide manualmente qué hacer con las invitaciones sin respuesta, usando el panel como referencia visual.
 - No existe estado "pendiente" por persona. Solo existen dos momentos: antes de responder (invitación completa sin respuesta) y después de responder (cada nombre queda fijo en sí/no).
+- El **teléfono de contacto** de la invitación es opcional y **privado del panel**: se persiste canónico para `wa.me` (solo dígitos, con prefijo `52`), nunca se muestra en la página pública, metadata ni RSVP, y solo dirige el enlace de WhatsApp cuando existe. Sin teléfono, el comportamiento de compartir es el actual (sin destinatario). No hay backfill: las invitaciones previas quedan en `NULL`.
+- **Importación Excel**: solo altas de invitaciones, nunca actualización, fusión ni sobrescritura. Cada fila es una persona; se agrupa por teléfono normalizado + título normalizado. La persistencia es **atómica por lote** bajo un advisory lock por evento, y el evento se deriva **siempre** de la sesión (el navegador nunca envía `eventoId`, `usuarioId`, `token`, `respondida` ni `asiste`).
 
 ## Autenticación
 
@@ -48,7 +51,8 @@ Incluido:
 - Sección de regalos opcional (mensaje, datos bancarios en texto libre, uno o varios links externos de mesa de regalos — ej. Amazon, Mercado Libre, Liverpool; solo son links, no hay integración con esas tiendas) — activable/desactivable desde el panel
 - Página pública de invitación con RSVP por nombre (según la plantilla elegida)
 - Dashboard simple: invitaciones respondidas/sin responder, total de personas confirmadas
-- Compartir por WhatsApp vía `wa.me` (link + texto prellenado, sin API)
+- Compartir por WhatsApp vía `wa.me` (link + texto prellenado, sin API) con teléfono de contacto opcional por invitación (privado del panel)
+- Importación de invitaciones desde Excel (`.xlsx`): solo altas, con plantilla, análisis/previsualización y confirmación explícita
 
 **Prioridad si el tiempo aprieta** (recortar de abajo hacia arriba, en este orden):
 1. 1 plantilla completa + RSVP + panel + datos del evento + cronograma + galería — innegociable
@@ -77,6 +81,7 @@ Si una tarea parece requerir algo de esta lista, avisa antes de implementarlo �
 - NextAuth / Auth.js
 - Almacenamiento de imágenes (foto principal + galería): UploadThing o S3-compatible, con redimensionado/optimización al subir (WebP, varios tamaños)
 - Despliegue en Vercel
+- Importación Excel: SheetJS (`xlsx` 0.20.3 desde el CDN de SheetJS), uso exclusivo en servidor; no hay scripts CDN en el navegador ni servicios externos de parseo
 
 ## Estilo de trabajo esperado
 

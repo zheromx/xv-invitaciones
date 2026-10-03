@@ -57,6 +57,8 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Fecha límite de respuesta visible en la invitación (informativa, sin automatizar vencimiento)
 - Tablero de conteo: por invitación (respondida / sin responder) y total de personas confirmadas/declinadas
 - Diseño responsivo, optimizado para celulares y conexiones débiles
+- Teléfono de contacto opcional por invitación (privado del panel; solo dirige el enlace de WhatsApp)
+- Importación de invitaciones desde Excel (`.xlsx`) con plantilla, análisis/previsualización, errores por fila y confirmación explícita (solo altas)
 
 ### Fuera de esta versión
 
@@ -69,6 +71,8 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Registro de padrinos por rubro con seguimiento de aportaciones
 - Libro de deseos
 - Soporte para más de un evento por cuenta (multi-evento)
+- Importación que actualice, fusione o sobrescriba invitaciones existentes; edición masiva desde Excel
+- Envío automático o masivo por WhatsApp desde la importación
 
 ## Herramientas y stack técnico
 
@@ -85,6 +89,7 @@ Elegido para que una sola persona pueda construir y mantener el sistema con velo
 | UploadThing / S3 | Almacenamiento de foto principal y galería, con optimización al subir |
 | Vercel | Despliegue sin gestión de servidores mientras se valida el producto |
 | wa.me | Compartir cada link de invitación por WhatsApp de forma manual |
+| SheetJS (xlsx) | Importación de invitaciones desde archivos `.xlsx`, solo en servidor |
 
 ## Cronograma de referencia
 

@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `0d51849` — `feat: música de fondo opcional (MP3) con control en la invitación pública` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `eba8875` — `feat: telefono de contacto opcional por invitacion para dirigir wa.me` · **Working tree:** limpio
 
 ---
 
@@ -567,3 +567,28 @@ Pista de música opcional por Evento, subida con UploadThing y reproducida solo 
 - **Página pública:** `components/invitacion/audio-musica.tsx` (client) provee `<audio loop preload="none">` (sin autoplay ni prefetch) y un control **circular de 44×44** con iconos `Music2` (detenido) / `Pause` (reproduciendo), sin texto visible, con `aria-label`/`title` dinámicos. `components/invitacion/bienvenida.tsx` llama `iniciar()` **síncrono** dentro del clic de “Abrir invitación”; si `play()` falla se captura en silencio y el control queda en “Reproducir música”. El bloque se monta solo en la ruta real (`!demostracion && token && musicaUrl`); demo y vista previa sin audio/control.
 - **Preservado:** RSVP, token, Auth.js, Prisma (salvo el campo nuevo), rutas, galería, regalos, orden de secciones, reveal/cronograma y fallback sin JS. `prefers-reduced-motion` no altera el audio.
 - **Validaciones:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde. Pendientes pruebas manuales (subir MP3, reproducción en móvil, bloqueo de `play()`, demo/preview sin audio).
+
+---
+
+## 23. Teléfono de contacto opcional por invitación
+
+Campo privado del panel que solo dirige el enlace de WhatsApp (`wa.me`); nunca se expone en la página pública, metadata ni RSVP.
+
+- **Datos / migración:** `Invitacion.telefono String?` (TEXT NULL). Migración `prisma/migrations/20261002202117_add_telefono_to_invitacion/migration.sql` (`ALTER TABLE "Invitacion" ADD COLUMN "telefono" TEXT;`), aditiva y nullable. La columna fue **creada manualmente** por el dueño en Supabase; antes de continuar se verificó por `information_schema.columns` → `public.Invitacion.telefono`, `data_type = text`, `is_nullable = YES`. Sin backfill: las invitaciones previas quedan en `NULL`.
+- **Normalización (`lib/telefono.ts`):** se rechazan letras/extensiones **antes** de limpiar separadores; se aceptan 10 dígitos o `52` + 10 con variantes de `+` inicial, espacios, guiones y paréntesis. `521` (13 dígitos) se **rechaza** con motivo específico; se persiste canónico `52` + 10 dígitos. `formatearTelefono` presenta `+52 933 987 6543`.
+- **CRUD:** `ejecutarCrear`/`ejecutarEditar` (`lib/invitaciones-nucleo.ts`) reciben y persisten `telefono`; `lib/acciones-invitaciones.ts` valida con `normalizarTelefono` (inválido → `datos-invalidos`). `components/panel/formulario-invitacion.tsx` agrega input opcional `type="tel"` que hereda el `disabled` del `fieldset`, por lo que una invitación respondida sigue bloqueada en solo lectura.
+- **Panel:** columna **Contacto** en `components/panel/lista-invitaciones.tsx` (visible solo en el panel) y `wa.me` con destinatario cuando existe teléfono; sin teléfono se conserva `https://wa.me/?text=...`.
+- **Privacidad:** `telefono` no se agrega a `lib/invitacion.ts` (allowlist pública), `app/invitacion/**` ni `components/templates/**`; verificado con búsqueda = 0 coincidencias.
+- **Validaciones estáticas:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde. **Pruebas puras aprobadas** sobre `lib/telefono.ts` (11 casos: formatos válidos → `529339876543`; `+52 1 ...`, largos incorrectos, letras/extensiones y vacío → `null`; formateo `+52 933 987 6543`).
+- **Pendiente:** pruebas funcionales con escritura (crear/editar con teléfono, `wa.me` con y sin destinatario), sujetas a autorización explícita de fixtures.
+
+---
+
+## 24. Importación de invitaciones desde Excel (`.xlsx`) — en curso
+
+Entregable aprobado, aún no implementado al cierre de esta sección.
+
+- **Dependencia:** SheetJS `xlsx` 0.20.3 desde el CDN oficial, fijada en `package.json`/`package-lock.json`, uso exclusivo en servidor (sin scripts CDN en el navegador ni servicios externos de parseo).
+- **Alcance:** solo altas, agrupando filas por teléfono + título normalizados; sin actualización, fusión ni sobrescritura. Persistencia atómica por lote bajo `pg_advisory_xact_lock` por evento; el evento se deriva siempre de la sesión.
+- **Transporte:** Route Handlers (`GET` plantilla, `POST` con operación explícita análisis/confirmación), con `auth()` por operación; la confirmación reenvía y revalida el archivo.
+- **Pendiente:** implementación, verificaciones sin escritura y plan de pruebas con escritura (a autorizar).
