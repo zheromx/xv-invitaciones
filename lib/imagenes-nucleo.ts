@@ -271,3 +271,153 @@ export async function ejecutarEliminarFotoSede(
     return { ok: false, motivo: "fallo" };
   }
 }
+
+export type SlotVestimenta = "damas" | "caballeros";
+
+// Slot de vestimenta validado server-side. Deliberadamente separado de
+// SlotSede: damas/caballeros nunca se confunden con misa/recepcion.
+export function esSlotVestimenta(valor: string): valor is SlotVestimenta {
+  return valor === "damas" || valor === "caballeros";
+}
+
+// Imagen opcional de vestimenta. Primera carga: activa la visibilidad.
+// Reemplazo: conserva el estado previo de visibilidad. Devuelve la URL anterior
+// para que la Server Action borre físicamente solo ese archivo.
+export async function ejecutarGuardarFotoVestimenta(
+  usuarioId: string,
+  slot: string,
+  url: string
+): Promise<
+  | { ok: true; anterior: string | null }
+  | { ok: false; motivo: MotivoImagen }
+> {
+  if (!esSlotVestimenta(slot)) return { ok: false, motivo: "datos-invalidos" };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const evento = await tx.evento.findFirst({
+        where: { usuarioId },
+        select: {
+          id: true,
+          vestimentaDamasUrl: true,
+          vestimentaCaballerosUrl: true,
+          mostrarVestimentaDamas: true,
+          mostrarVestimentaCaballeros: true,
+        },
+      });
+      if (!evento) return { ok: false as const, motivo: "no-encontrada" as const };
+
+      const anterior =
+        slot === "damas"
+          ? evento.vestimentaDamasUrl
+          : evento.vestimentaCaballerosUrl;
+      const mostrarActual =
+        slot === "damas"
+          ? evento.mostrarVestimentaDamas
+          : evento.mostrarVestimentaCaballeros;
+      const mostrar = anterior ? mostrarActual : true;
+
+      await tx.evento.update({
+        where: { id: evento.id },
+        data:
+          slot === "damas"
+            ? { vestimentaDamasUrl: url, mostrarVestimentaDamas: mostrar }
+            : {
+                vestimentaCaballerosUrl: url,
+                mostrarVestimentaCaballeros: mostrar,
+              },
+      });
+      return { ok: true as const, anterior };
+    });
+  } catch (error) {
+    console.error("Error al guardar la imagen de vestimenta:", error);
+    return { ok: false, motivo: "fallo" };
+  }
+}
+
+// Eliminar limpia la URL y deja la visibilidad en false. Devuelve la URL
+// anterior para el borrado físico exclusivo de ese archivo.
+export async function ejecutarEliminarFotoVestimenta(
+  usuarioId: string,
+  slot: string
+): Promise<
+  | { ok: true; anterior: string | null }
+  | { ok: false; motivo: MotivoImagen }
+> {
+  if (!esSlotVestimenta(slot)) return { ok: false, motivo: "datos-invalidos" };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const evento = await tx.evento.findFirst({
+        where: { usuarioId },
+        select: {
+          id: true,
+          vestimentaDamasUrl: true,
+          vestimentaCaballerosUrl: true,
+        },
+      });
+      if (!evento) return { ok: false as const, motivo: "no-encontrada" as const };
+
+      const anterior =
+        slot === "damas"
+          ? evento.vestimentaDamasUrl
+          : evento.vestimentaCaballerosUrl;
+
+      await tx.evento.update({
+        where: { id: evento.id },
+        data:
+          slot === "damas"
+            ? { vestimentaDamasUrl: null, mostrarVestimentaDamas: false }
+            : {
+                vestimentaCaballerosUrl: null,
+                mostrarVestimentaCaballeros: false,
+              },
+      });
+      return { ok: true as const, anterior };
+    });
+  } catch (error) {
+    console.error("Error al eliminar la imagen de vestimenta:", error);
+    return { ok: false, motivo: "fallo" };
+  }
+}
+
+// Mostrar/ocultar sin tocar la URL ni el archivo. No permite activar Mostrar
+// sin una URL válida persistida.
+export async function ejecutarCambiarVisibilidadVestimenta(
+  usuarioId: string,
+  slot: string,
+  visible: boolean
+): Promise<{ ok: true } | { ok: false; motivo: MotivoImagen }> {
+  if (!esSlotVestimenta(slot)) return { ok: false, motivo: "datos-invalidos" };
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const evento = await tx.evento.findFirst({
+        where: { usuarioId },
+        select: {
+          id: true,
+          vestimentaDamasUrl: true,
+          vestimentaCaballerosUrl: true,
+        },
+      });
+      if (!evento) return { ok: false as const, motivo: "no-encontrada" as const };
+
+      const url =
+        slot === "damas"
+          ? evento.vestimentaDamasUrl
+          : evento.vestimentaCaballerosUrl;
+      if (visible && !url) {
+        return { ok: false as const, motivo: "datos-invalidos" as const };
+      }
+
+      await tx.evento.update({
+        where: { id: evento.id },
+        data:
+          slot === "damas"
+            ? { mostrarVestimentaDamas: visible }
+            : { mostrarVestimentaCaballeros: visible },
+      });
+      return { ok: true as const };
+    });
+  } catch (error) {
+    console.error("Error al cambiar la visibilidad de la vestimenta:", error);
+    return { ok: false, motivo: "fallo" };
+  }
+}

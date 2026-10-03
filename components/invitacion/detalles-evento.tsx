@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Church, Clock, MapPin, Shirt, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import type { DatosEvento } from "@/lib/evento";
+import { imagenVestimentaVisible } from "@/lib/evento";
 import { resolverUrlMapa } from "@/lib/ubicaciones";
 
 type BloqueProps = {
@@ -67,6 +68,20 @@ function Bloque({
 }
 
 export function DetallesEvento({ evento }: { evento: DatosEvento }) {
+  const vestimentaDamasVisible = imagenVestimentaVisible(
+    evento.vestimentaDamasUrl,
+    evento.mostrarVestimentaDamas
+  );
+  const vestimentaCaballerosVisible = imagenVestimentaVisible(
+    evento.vestimentaCaballerosUrl,
+    evento.mostrarVestimentaCaballeros
+  );
+  const mostrarProtocolo =
+    Boolean(evento.codigoVestimenta) ||
+    Boolean(evento.infoAdicional) ||
+    vestimentaDamasVisible ||
+    vestimentaCaballerosVisible;
+
   return (
     <section className="space-y-4 px-5 text-center">
       <div>
@@ -104,7 +119,7 @@ export function DetallesEvento({ evento }: { evento: DatosEvento }) {
         fotoUrl={evento.recepcionFotoUrl}
       />
 
-      {(evento.codigoVestimenta || evento.infoAdicional) && (
+      {mostrarProtocolo && (
         <div className="rounded-2xl border border-dorado/25 bg-marfil-osc px-5 py-5 text-center">
           <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-eucalipto-200 text-eucalipto-700">
             <Shirt className="h-5 w-5" />
@@ -121,6 +136,38 @@ export function DetallesEvento({ evento }: { evento: DatosEvento }) {
             <p className="mt-2 text-sm leading-6 text-zinc-500">
               {evento.infoAdicional}
             </p>
+          )}
+          {vestimentaDamasVisible && (
+            <figure className="mt-5">
+              <figcaption className="text-[11px] font-semibold uppercase tracking-[0.16em] text-eucalipto-600">
+                Damas
+              </figcaption>
+              <div className="relative mt-2 aspect-[4/5] w-full overflow-hidden rounded-xl border border-dorado/20 bg-white/60">
+                <Image
+                  src={evento.vestimentaDamasUrl as string}
+                  alt="Vestimenta para damas"
+                  fill
+                  sizes="(max-width: 420px) 90vw, 380px"
+                  className="object-contain"
+                />
+              </div>
+            </figure>
+          )}
+          {vestimentaCaballerosVisible && (
+            <figure className="mt-5">
+              <figcaption className="text-[11px] font-semibold uppercase tracking-[0.16em] text-eucalipto-600">
+                Caballeros
+              </figcaption>
+              <div className="relative mt-2 aspect-[4/5] w-full overflow-hidden rounded-xl border border-dorado/20 bg-white/60">
+                <Image
+                  src={evento.vestimentaCaballerosUrl as string}
+                  alt="Vestimenta para caballeros"
+                  fill
+                  sizes="(max-width: 420px) 90vw, 380px"
+                  className="object-contain"
+                />
+              </div>
+            </figure>
           )}
         </div>
       )}

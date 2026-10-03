@@ -67,6 +67,13 @@ model Evento {
   recepcionFotoUrl   String?
 
   codigoVestimenta  String?
+
+  // Imágenes de vestimenta (opcionales e independientes: damas / caballeros)
+  vestimentaDamasUrl          String?
+  vestimentaCaballerosUrl     String?
+  mostrarVestimentaDamas      Boolean @default(false)
+  mostrarVestimentaCaballeros Boolean @default(false)
+
   infoAdicional     String?      // ej. "no se admiten niños", estacionamiento, etc.
 
   fotoPrincipalUrl  String?      // foto de portada de la invitación

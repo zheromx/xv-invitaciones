@@ -9,11 +9,14 @@ import {
 } from "@/lib/imagenes-evento";
 import {
   ejecutarAgregarFotoGaleria,
+  ejecutarCambiarVisibilidadVestimenta,
   ejecutarEliminarFotoGaleria,
   ejecutarEliminarFotoPrincipal,
   ejecutarEliminarFotoSede,
+  ejecutarEliminarFotoVestimenta,
   ejecutarGuardarFotoPrincipal,
   ejecutarGuardarFotoSede,
+  ejecutarGuardarFotoVestimenta,
   ejecutarMoverFotoGaleria,
 } from "@/lib/imagenes-nucleo";
 
@@ -184,6 +187,75 @@ export async function eliminarFotoSede(slot: string): Promise<ResultadoImagen> {
   if (resultado.anterior) {
     await borrarObjetoUploadThing(resultado.anterior);
   }
+  revalidar();
+  return { ok: true };
+}
+
+// Imagen opcional de vestimenta (damas/caballeros). El slot se valida
+// server-side y nunca se mezcla con misa/recepcion.
+export async function guardarFotoVestimenta(
+  slot: string,
+  url: string
+): Promise<ResultadoImagen> {
+  const usuarioId = await usuarioIdSesion();
+  if (!usuarioId) return { ok: false, motivo: "no-autenticado" };
+  if (slot !== "damas" && slot !== "caballeros") {
+    return { ok: false, motivo: "datos-invalidos" };
+  }
+  if (typeof url !== "string" || !urlUploadThingValida(url)) {
+    return { ok: false, motivo: "datos-invalidos" };
+  }
+
+  const resultado = await ejecutarGuardarFotoVestimenta(usuarioId, slot, url);
+  if (!resultado.ok) return { ok: false, motivo: resultado.motivo };
+
+  // Solo el archivo reemplazado se borra físicamente, tras persistir en BD.
+  if (resultado.anterior && resultado.anterior !== url) {
+    await borrarObjetoUploadThing(resultado.anterior);
+  }
+  revalidar();
+  return { ok: true };
+}
+
+export async function eliminarFotoVestimenta(
+  slot: string
+): Promise<ResultadoImagen> {
+  const usuarioId = await usuarioIdSesion();
+  if (!usuarioId) return { ok: false, motivo: "no-autenticado" };
+  if (slot !== "damas" && slot !== "caballeros") {
+    return { ok: false, motivo: "datos-invalidos" };
+  }
+
+  const resultado = await ejecutarEliminarFotoVestimenta(usuarioId, slot);
+  if (!resultado.ok) return { ok: false, motivo: resultado.motivo };
+
+  if (resultado.anterior) {
+    await borrarObjetoUploadThing(resultado.anterior);
+  }
+  revalidar();
+  return { ok: true };
+}
+
+export async function cambiarVisibilidadVestimenta(
+  slot: string,
+  visible: boolean
+): Promise<ResultadoImagen> {
+  const usuarioId = await usuarioIdSesion();
+  if (!usuarioId) return { ok: false, motivo: "no-autenticado" };
+  if (slot !== "damas" && slot !== "caballeros") {
+    return { ok: false, motivo: "datos-invalidos" };
+  }
+  if (typeof visible !== "boolean") {
+    return { ok: false, motivo: "datos-invalidos" };
+  }
+
+  const resultado = await ejecutarCambiarVisibilidadVestimenta(
+    usuarioId,
+    slot,
+    visible
+  );
+  if (!resultado.ok) return { ok: false, motivo: resultado.motivo };
+
   revalidar();
   return { ok: true };
 }

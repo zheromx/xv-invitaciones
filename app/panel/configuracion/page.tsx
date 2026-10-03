@@ -115,6 +115,12 @@ export default async function PaginaConfiguracionEvento() {
         principalUrl={imagenes?.fotoPrincipalUrl ?? null}
         misaFotoUrl={imagenes?.misaFotoUrl ?? null}
         recepcionFotoUrl={imagenes?.recepcionFotoUrl ?? null}
+        vestimentaDamasUrl={imagenes?.vestimentaDamasUrl ?? null}
+        vestimentaCaballerosUrl={imagenes?.vestimentaCaballerosUrl ?? null}
+        mostrarVestimentaDamas={imagenes?.mostrarVestimentaDamas ?? false}
+        mostrarVestimentaCaballeros={
+          imagenes?.mostrarVestimentaCaballeros ?? false
+        }
         tieneMisa={evento.tieneMisa}
         galeria={imagenes?.fotosGaleria ?? []}
       />

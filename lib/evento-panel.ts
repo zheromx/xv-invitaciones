@@ -58,6 +58,10 @@ export async function obtenerImagenesEventoSesion() {
       fotoPrincipalUrl: true,
       misaFotoUrl: true,
       recepcionFotoUrl: true,
+      vestimentaDamasUrl: true,
+      vestimentaCaballerosUrl: true,
+      mostrarVestimentaDamas: true,
+      mostrarVestimentaCaballeros: true,
       fotosGaleria: {
         orderBy: { orden: "asc" },
         select: { id: true, url: true, orden: true },
@@ -149,6 +153,10 @@ export async function obtenerVistaPreviaSesion(): Promise<{
     recepcionFotoUrl: evento.recepcionFotoUrl,
     codigoVestimenta: evento.codigoVestimenta,
     infoAdicional: evento.infoAdicional,
+    vestimentaDamasUrl: evento.vestimentaDamasUrl,
+    vestimentaCaballerosUrl: evento.vestimentaCaballerosUrl,
+    mostrarVestimentaDamas: evento.mostrarVestimentaDamas,
+    mostrarVestimentaCaballeros: evento.mostrarVestimentaCaballeros,
     cronograma: evento.cronograma.map((momento) => ({
       hora: momento.hora,
       titulo: momento.titulo,

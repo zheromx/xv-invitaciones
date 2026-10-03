@@ -6,17 +6,22 @@ import { useRef, useState, useTransition } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Eye,
+  EyeOff,
   ImagePlus,
   Loader2,
   Trash2,
 } from "lucide-react";
 import {
   agregarFotoGaleria,
+  cambiarVisibilidadVestimenta,
   eliminarFotoGaleria,
   eliminarFotoPrincipal,
   eliminarFotoSede,
+  eliminarFotoVestimenta,
   guardarFotoPrincipal,
   guardarFotoSede,
+  guardarFotoVestimenta,
   moverFotoGaleria,
   type ResultadoImagen,
 } from "@/lib/acciones-imagenes";
@@ -47,12 +52,20 @@ export function BloqueImagenes({
   principalUrl,
   misaFotoUrl,
   recepcionFotoUrl,
+  vestimentaDamasUrl,
+  vestimentaCaballerosUrl,
+  mostrarVestimentaDamas,
+  mostrarVestimentaCaballeros,
   tieneMisa,
   galeria,
 }: {
   principalUrl: string | null;
   misaFotoUrl: string | null;
   recepcionFotoUrl: string | null;
+  vestimentaDamasUrl: string | null;
+  vestimentaCaballerosUrl: string | null;
+  mostrarVestimentaDamas: boolean;
+  mostrarVestimentaCaballeros: boolean;
   tieneMisa: boolean;
   galeria: FotoGaleriaVista[];
 }) {
@@ -64,6 +77,8 @@ export function BloqueImagenes({
   const galeriaRef = useRef<HTMLInputElement>(null);
   const misaFotoRef = useRef<HTMLInputElement>(null);
   const recepcionFotoRef = useRef<HTMLInputElement>(null);
+  const vestimentaDamasRef = useRef<HTMLInputElement>(null);
+  const vestimentaCaballerosRef = useRef<HTMLInputElement>(null);
 
   const ejecutarAccion = (
     accion: () => Promise<ResultadoImagen>,
@@ -148,8 +163,53 @@ export function BloqueImagenes({
       },
     });
 
+  const {
+    startUpload: subirVestimentaDamas,
+    isUploading: subiendoVestimentaDamas,
+  } = useUploadThing("fotoSede", {
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.serverData?.url ?? res?.[0]?.ufsUrl;
+      if (!url) {
+        setError("La subida no devolvió una URL válida.");
+        return;
+      }
+      ejecutarAccion(
+        () => guardarFotoVestimenta("damas", url),
+        "Imagen de vestimenta para damas guardada."
+      );
+    },
+    onUploadError: (e) => {
+      setError(e?.message || "No se pudo subir la imagen.");
+    },
+  });
+
+  const {
+    startUpload: subirVestimentaCaballeros,
+    isUploading: subiendoVestimentaCaballeros,
+  } = useUploadThing("fotoSede", {
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.serverData?.url ?? res?.[0]?.ufsUrl;
+      if (!url) {
+        setError("La subida no devolvió una URL válida.");
+        return;
+      }
+      ejecutarAccion(
+        () => guardarFotoVestimenta("caballeros", url),
+        "Imagen de vestimenta para caballeros guardada."
+      );
+    },
+    onUploadError: (e) => {
+      setError(e?.message || "No se pudo subir la imagen.");
+    },
+  });
+
   const subiendo =
-    subiendoPrincipal || subiendoGaleria || subiendoMisa || subiendoRecepcion;
+    subiendoPrincipal ||
+    subiendoGaleria ||
+    subiendoMisa ||
+    subiendoRecepcion ||
+    subiendoVestimentaDamas ||
+    subiendoVestimentaCaballeros;
   const ocupado = pendiente || subiendo;
   const sinCupo = galeria.length >= MAX_FOTOS_GALERIA;
 
@@ -410,6 +470,210 @@ export function BloqueImagenes({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Vestimenta para damas */}
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-800">
+            Vestimenta para damas
+          </h3>
+          <p className="mt-0.5 text-[11px] text-zinc-400">
+            Opcional. Se muestra dentro del bloque de protocolo, debajo del
+            texto.
+          </p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="relative aspect-[4/5] w-28 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-eucalipto-50">
+              {vestimentaDamasUrl ? (
+                <Image
+                  src={vestimentaDamasUrl}
+                  alt="Vestimenta para damas"
+                  fill
+                  sizes="112px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-[11px] text-zinc-400">
+                  Sin imagen
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={vestimentaDamasRef}
+                type="file"
+                accept={ACEPTA}
+                onChange={(evento) =>
+                  alElegirSede(evento, subirVestimentaDamas)
+                }
+                className="sr-only"
+                aria-label="Subir imagen de vestimenta para damas"
+              />
+              <button
+                type="button"
+                onClick={() => vestimentaDamasRef.current?.click()}
+                disabled={ocupado}
+                className={claseSecundario}
+              >
+                {subiendoVestimentaDamas ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+                {vestimentaDamasUrl ? "Reemplazar" : "Subir imagen"}
+              </button>
+              {vestimentaDamasUrl && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutarAccion(
+                        () =>
+                          cambiarVisibilidadVestimenta(
+                            "damas",
+                            !mostrarVestimentaDamas
+                          ),
+                        mostrarVestimentaDamas
+                          ? "Imagen de damas oculta. El archivo se conserva."
+                          : "Imagen de damas visible."
+                      )
+                    }
+                    disabled={ocupado}
+                    className={claseSecundario}
+                  >
+                    {mostrarVestimentaDamas ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    {mostrarVestimentaDamas ? "Ocultar" : "Mostrar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutarAccion(
+                        () => eliminarFotoVestimenta("damas"),
+                        "Imagen de vestimenta para damas eliminada."
+                      )
+                    }
+                    disabled={ocupado}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Eliminar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {vestimentaDamasUrl && (
+            <p className="mt-2 text-[11px] text-zinc-400">
+              {mostrarVestimentaDamas
+                ? "Visible en la invitación."
+                : "Oculta en la invitación. El archivo se conserva."}
+            </p>
+          )}
+        </div>
+
+        {/* Vestimenta para caballeros */}
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-800">
+            Vestimenta para caballeros
+          </h3>
+          <p className="mt-0.5 text-[11px] text-zinc-400">
+            Opcional. Se muestra dentro del bloque de protocolo, debajo del
+            texto.
+          </p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="relative aspect-[4/5] w-28 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-eucalipto-50">
+              {vestimentaCaballerosUrl ? (
+                <Image
+                  src={vestimentaCaballerosUrl}
+                  alt="Vestimenta para caballeros"
+                  fill
+                  sizes="112px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-[11px] text-zinc-400">
+                  Sin imagen
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={vestimentaCaballerosRef}
+                type="file"
+                accept={ACEPTA}
+                onChange={(evento) =>
+                  alElegirSede(evento, subirVestimentaCaballeros)
+                }
+                className="sr-only"
+                aria-label="Subir imagen de vestimenta para caballeros"
+              />
+              <button
+                type="button"
+                onClick={() => vestimentaCaballerosRef.current?.click()}
+                disabled={ocupado}
+                className={claseSecundario}
+              >
+                {subiendoVestimentaCaballeros ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+                {vestimentaCaballerosUrl ? "Reemplazar" : "Subir imagen"}
+              </button>
+              {vestimentaCaballerosUrl && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutarAccion(
+                        () =>
+                          cambiarVisibilidadVestimenta(
+                            "caballeros",
+                            !mostrarVestimentaCaballeros
+                          ),
+                        mostrarVestimentaCaballeros
+                          ? "Imagen de caballeros oculta. El archivo se conserva."
+                          : "Imagen de caballeros visible."
+                      )
+                    }
+                    disabled={ocupado}
+                    className={claseSecundario}
+                  >
+                    {mostrarVestimentaCaballeros ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    {mostrarVestimentaCaballeros ? "Ocultar" : "Mostrar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutarAccion(
+                        () => eliminarFotoVestimenta("caballeros"),
+                        "Imagen de vestimenta para caballeros eliminada."
+                      )
+                    }
+                    disabled={ocupado}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Eliminar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {vestimentaCaballerosUrl && (
+            <p className="mt-2 text-[11px] text-zinc-400">
+              {mostrarVestimentaCaballeros
+                ? "Visible en la invitación."
+                : "Oculta en la invitación. El archivo se conserva."}
+            </p>
+          )}
         </div>
 
         {/* Galería */}

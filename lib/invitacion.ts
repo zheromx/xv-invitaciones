@@ -44,6 +44,10 @@ export const obtenerInvitacionPorToken = cache(async (token: string) => {
     recepcionFotoUrl: registro.evento.recepcionFotoUrl,
     codigoVestimenta: registro.evento.codigoVestimenta,
     infoAdicional: registro.evento.infoAdicional,
+    vestimentaDamasUrl: registro.evento.vestimentaDamasUrl,
+    vestimentaCaballerosUrl: registro.evento.vestimentaCaballerosUrl,
+    mostrarVestimentaDamas: registro.evento.mostrarVestimentaDamas,
+    mostrarVestimentaCaballeros: registro.evento.mostrarVestimentaCaballeros,
     cronograma: registro.evento.cronograma.map((momento) => ({
       hora: momento.hora,
       titulo: momento.titulo,

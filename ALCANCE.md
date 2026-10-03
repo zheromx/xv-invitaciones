@@ -35,7 +35,7 @@ Invitación
 
 Cada invitación se administra desde un panel privado y se comparte por WhatsApp como un link personalizado. Al abrir el link, el destinatario ve los nombres del grupo (marcados por defecto) y desmarca a quienes no asistirán. Al confirmar, la respuesta queda fija: la invitación pasa a modo solo lectura y ya no se puede editar. Si no se responde antes de la fecha límite indicada en la propia invitación, se considera que nadie de ese grupo asistirá; por ahora esto es solo informativo y el cliente decide manualmente qué hacer con las invitaciones sin respuesta.
 
-El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: nombre de la quinceañera y de los padres, fecha/hora/lugar de ceremonia religiosa y recepción, cronograma del evento, código de vestimenta, cuenta regresiva, foto principal, galería de al menos 4 fotos, y una sección opcional de regalos.
+El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: nombre de la quinceañera y de los padres, fecha/hora/lugar de ceremonia religiosa y recepción, cronograma del evento, código de vestimenta (con dos imágenes opcionales e independientes para damas y caballeros, cada una con su propio interruptor de visibilidad), cuenta regresiva, foto principal, galería de al menos 4 fotos, y una sección opcional de regalos.
 
 ## Alcance de esta primera versión
 
@@ -49,6 +49,7 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Vista previa de la invitación con los datos capturados, antes de compartir el link real
 - Captura de nombre de la quinceañera y de los padres
 - Datos del evento: fecha, ceremonia religiosa, recepción, código de vestimenta, mapa
+- Imágenes de vestimenta opcionales e independientes (damas y caballeros) dentro del bloque de protocolo, con control de visibilidad por imagen
 - Cronograma del evento (lista ordenada de momentos con hora, título e ícono)
 - Cuenta regresiva hacia la fecha del evento
 - Foto principal y galería de al menos 4 fotos
@@ -86,7 +87,7 @@ Elegido para que una sola persona pueda construir y mantener el sistema con velo
 | PostgreSQL + Prisma | Base de datos de eventos, invitaciones, plantillas y confirmaciones; esquema tipado |
 | Tailwind + shadcn/ui | Interfaz del panel: tabla, formularios y estados, simple y presentable |
 | NextAuth / Auth.js | Acceso privado del cliente al panel de administración |
-| UploadThing / S3 | Almacenamiento de foto principal y galería, con optimización al subir |
+| UploadThing / S3 | Almacenamiento de foto principal, galería e imágenes de vestimenta, con optimización al subir |
 | Vercel | Despliegue sin gestión de servidores mientras se valida el producto |
 | wa.me | Compartir cada link de invitación por WhatsApp de forma manual |
 | SheetJS (xlsx) | Importación de invitaciones desde archivos `.xlsx`, solo en servidor |

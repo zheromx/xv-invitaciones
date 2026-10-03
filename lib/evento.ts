@@ -47,6 +47,10 @@ export type DatosEvento = {
   recepcionFotoUrl?: string | null;
   codigoVestimenta: string | null;
   infoAdicional: string | null;
+  vestimentaDamasUrl?: string | null;
+  vestimentaCaballerosUrl?: string | null;
+  mostrarVestimentaDamas?: boolean;
+  mostrarVestimentaCaballeros?: boolean;
   cronograma: MomentoEvento[];
   galeria: FotoGaleria[];
   infoRegalos?: RegalosVista | null;
@@ -76,6 +80,15 @@ export function mapearRegalos(
       orden: mesa.orden,
     })),
   };
+}
+
+// Una imagen de vestimenta se muestra solo si tiene URL utilizable y su
+// visibilidad está activada. Sin URL no hay bloque ni placeholder.
+export function imagenVestimentaVisible(
+  url: string | null | undefined,
+  visible: boolean | undefined
+): url is string {
+  return Boolean(visible) && typeof url === "string" && url.trim().length > 0;
 }
 
 export type PersonaDemo = {
