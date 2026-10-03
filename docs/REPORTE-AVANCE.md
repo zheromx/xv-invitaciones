@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `7bc0efc` — `feat: importar invitaciones desde Excel` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `a126da6` — `feat: imagenes opcionales de vestimenta para damas y caballeros` · **Working tree:** limpio
 
 ---
 
@@ -625,3 +625,21 @@ Implementada y probada de punta a punta (análisis, confirmación, duplicados y 
   - Visualización de la invitación pública.
   - Apertura real de WhatsApp con destinatario.
 - **Pendiente:** WhatsApp sin teléfono (fallback sin destinatario en la UI), bloqueo visual del teléfono en invitaciones respondidas, y errores del importador mostrados desde la UI.
+
+---
+
+## 25. Imágenes de vestimenta para damas y caballeros
+
+Dos imágenes opcionales e independientes dentro del bloque de protocolo. Cambio mínimo en `Evento`, sin tablas nuevas y sin visor, librería ni sección adicional.
+
+- **Schema / migración:** `Evento.vestimentaDamasUrl String?`, `vestimentaCaballerosUrl String?`, `mostrarVestimentaDamas Boolean @default(false)`, `mostrarVestimentaCaballeros Boolean @default(false)`. Migración `prisma/migrations/20261003000000_vestimenta_imagenes/migration.sql` (aditiva, nullable, `false` por defecto). Las columnas fueron creadas manualmente por el dueño y verificadas por solo lectura en `information_schema.columns`: `text / YES / null` ×2 y `boolean / NO / false` ×2; los eventos existentes quedaron en `NULL`/`false`.
+- **Semántica de visibilidad:** primera carga activa visibilidad; reemplazo conserva el estado previo; ocultar conserva URL y archivo; eliminar limpia la URL y deja `false`. No se puede activar Mostrar sin URL válida (validado server-side en `lib/imagenes-nucleo.ts`).
+- **Reutilización:** se usa la ruta UploadThing `fotoSede` ya existente (1 archivo, 4 MB, JPG/PNG/WebP, evento derivado siempre de la sesión). Los slots `damas`/`caballeros` se validan server-side y están separados de `misa`/`recepcion` (`esSlotVestimenta`). BD primero y borrado físico después, solo del archivo reemplazado/eliminado, vía `borrarObjetoUploadThing`.
+- **Archivos:** núcleo y acciones en `lib/imagenes-nucleo.ts` (`ejecutarGuardarFotoVestimenta`, `ejecutarEliminarFotoVestimenta`, `ejecutarCambiarVisibilidadVestimenta`) y `lib/acciones-imagenes.ts` (`guardarFotoVestimenta`, `eliminarFotoVestimenta`, `cambiarVisibilidadVestimenta`); mapeos en `lib/invitacion.ts` y `lib/evento-panel.ts`; controles en `components/panel/imagenes-evento.tsx` (dos sub-bloques en la sección 8); props en `app/panel/configuracion/page.tsx`; render en `components/invitacion/detalles-evento.tsx`.
+- **Render:** el bloque de protocolo ahora aparece con `codigoVestimenta || infoAdicional` **o** al menos una imagen efectivamente visible. Bajo el texto se muestran, con etiqueta `Damas`/`Caballeros`, usando `object-contain` para no recortar la imagen. Pública y vista previa reutilizan el mismo componente; sin imágenes visibles el aspecto no cambia.
+- **Sin tocar:** RSVP, invitaciones, personas, Excel, teléfono, orden de secciones ni paleta.
+- **Pruebas automatizadas (sin escrituras al evento ni operaciones físicas en UploadThing):** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde (con Prisma Client regenerado, `v6.19.3`); helper puro `imagenVestimentaVisible` 8/8; `GET /invitacion/dev-familia-lopez-sin-responder-2026` → **200**, bloque `Protocolo` presente, `0` `<figure>`/`<figcaption>` y sin `Damas`/`Caballeros` (conserva el aspecto actual); `prisma validate` correcto.
+- **Revisión visual del dueño — APROBADA:** las imágenes de vestimenta se muestran correctamente en la vista previa y en la invitación pública (localhost), en el mismo evento con su configuración real.
+- **Discrepancia inicial (resuelta, no fue un fallo de código):** la vista previa mostraba las imágenes pero la invitación pública no. Causa comprobada: se había abierto **Vercel** en lugar de **localhost**, es decir, una versión desplegada que todavía no contiene estos cambios (el commit aún no existía). Verificado que el recorrido de datos es idéntico en ambos caminos (`obtenerInvitacionPorToken` con `include` en `lib/invitacion.ts` y `obtenerVistaPreviaSesion` con `include` en `lib/evento-panel.ts` → `EleganteEucalipto` → `DetallesEvento`), que la ruta pública es dinámica (`ƒ`, sin caché de datos: solo `cache()` de React con alcance de petición) y que `revalidar()` sí incluye `revalidatePath("/invitacion/[token]", "page")` en las tres Server Actions de vestimenta.
+- **Commit:** `a126da6` — `feat: imagenes opcionales de vestimenta para damas y caballeros` (12 archivos, 586 inserciones / 5 eliminaciones), con la migración `prisma/migrations/20261003000000_vestimenta_imagenes/migration.sql` y las actualizaciones de `AGENTS.md` / `ALCANCE.md`. Sin push ni deploy.
+- **Pendiente (sin confirmar por el dueño, no se atribuyen):** pruebas manuales de **ocultar/mostrar**, **reemplazar** y **eliminar** imágenes de vestimenta; solo se confirma la visualización.
