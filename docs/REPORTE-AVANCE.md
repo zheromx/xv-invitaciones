@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `a126da6` — `feat: imagenes opcionales de vestimenta para damas y caballeros` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `cb63b05` — `feat: revision previa al envio irreversible del RSVP` · **Working tree:** limpio
 
 ---
 
@@ -643,3 +643,59 @@ Dos imágenes opcionales e independientes dentro del bloque de protocolo. Cambio
 - **Discrepancia inicial (resuelta, no fue un fallo de código):** la vista previa mostraba las imágenes pero la invitación pública no. Causa comprobada: se había abierto **Vercel** en lugar de **localhost**, es decir, una versión desplegada que todavía no contiene estos cambios (el commit aún no existía). Verificado que el recorrido de datos es idéntico en ambos caminos (`obtenerInvitacionPorToken` con `include` en `lib/invitacion.ts` y `obtenerVistaPreviaSesion` con `include` en `lib/evento-panel.ts` → `EleganteEucalipto` → `DetallesEvento`), que la ruta pública es dinámica (`ƒ`, sin caché de datos: solo `cache()` de React con alcance de petición) y que `revalidar()` sí incluye `revalidatePath("/invitacion/[token]", "page")` en las tres Server Actions de vestimenta.
 - **Commit:** `a126da6` — `feat: imagenes opcionales de vestimenta para damas y caballeros` (12 archivos, 586 inserciones / 5 eliminaciones), con la migración `prisma/migrations/20261003000000_vestimenta_imagenes/migration.sql` y las actualizaciones de `AGENTS.md` / `ALCANCE.md`. Sin push ni deploy.
 - **Pendiente (sin confirmar por el dueño, no se atribuyen):** pruebas manuales de **ocultar/mostrar**, **reemplazar** y **eliminar** imágenes de vestimenta; solo se confirma la visualización.
+
+---
+
+## 26. Revisión previa al envío del RSVP (protección contra confirmaciones accidentales)
+
+Paso intermedio de revisión antes de escribir el RSVP, para evitar que un toque durante la navegación dispare la confirmación irreversible. No es un rediseño de plantilla ni toca el modelo de datos.
+
+### 26.1 Diagnóstico (solo lectura, sin atribuir el incidente)
+
+- **No hay disparadores táctiles ni envío implícito:** en `rsvp-formulario.tsx`, `rsvp.tsx`, `lib/acciones-rsvp.ts` y `lib/rsvp-nucleo.ts` no existen `touchstart`/`touchend`/`pointerdown`/`pointerup`, `onTouch*`/`onPointer*`, `useEffect`, `<form>`, `onSubmit` ni `requestSubmit`.
+- **Botones con `type` explícito:** los dos botones del formulario usan `type="button"`; no hay submit implícito.
+- **Una sola ruta de escritura:** `confirmarAsistencia` se importa y se invoca únicamente en `rsvp-formulario.tsx` (dentro del handler final); no hay otra referencia en `app/`, `components/` ni `lib/` fuera de su definición en `lib/acciones-rsvp.ts`.
+- **No se atribuye el incidente al scroll:** no hay evidencia en el código que relacione el scroll con un envío. Se documenta como observación de layout (botón primario full-width inmediatamente bajo la lista y filas `label` que alternan al tocar), no como causa comprobada.
+- **Diálogo:** el repo no tiene `components/ui/` ni dependencias de radix/shadcn dialog; el patrón accesible existente es inline en `components/invitacion/galeria-interactiva.tsx` (portal + `role="dialog"` + `aria-modal` + Escape). **No se añadieron dependencias.**
+
+### 26.2 Cambio implementado
+
+| Tipo | Archivo | Responsabilidad |
+|---|---|---|
+| Creado | `lib/rsvp-resumen.ts` | Función pura `construirResumen(personas, seleccion)` → `{ asisten, noAsisten }` con `{ id, nombre }`; misma selección que se envía, sin reordenar ni inventar |
+| Creado | `components/invitacion/rsvp-confirmacion.tsx` | Diálogo modal accesible: portal, `role="dialog"`, `aria-modal`, resumen, foco atrapado, Escape |
+| Modificado | `components/invitacion/rsvp-formulario.tsx` | Botón "Revisar respuesta" (no envía) + estado `revisando` + diálogo; única llamada a la acción en "Sí, enviar respuesta" |
+| Modificado | `components/invitacion/rsvp.tsx` | Solo la etiqueta del botón inerte de `SinResponder` pasa a "Revisar respuesta" (demo/preview siguen inertes) |
+
+Reglas de interacción:
+
+- El primer botón pasa a **"Revisar respuesta"** y **no** llama a `confirmarAsistencia`.
+- El diálogo muestra **"Sí asistirán (N)"** y **"No asistirán (N)"** con los nombres; si la selección está vacía muestra explícitamente **"Ninguna persona de la invitación asistirá."**
+- Aviso de irreversibilidad: *"Esta respuesta es definitiva. Una vez enviada no se puede modificar."*
+- **"Volver a editar"** (y Escape, y el fondo, y la X) cierran sin escribir y conservan la selección.
+- **Solo "Sí, enviar respuesta"** llama a la Server Action, con `[...seleccion]` idéntico al resumen revisado.
+- **"No podré asistir"** solo desmarca a todos; nunca envía.
+- Sin tap-through: el diálogo se abre por `onClick` (posterior al `pointerup`), el overlay `fixed inset-0` cubre el fondo y el foco inicial va a "Volver a editar" (nunca al botón final).
+- Foco atrapado: Tab y Shift+Tab no salen del modal; al cancelar el foco vuelve al botón "Revisar respuesta"; durante el envío ambos botones quedan deshabilitados y el foco se retiene en el panel.
+- Resumen con `overflow-y-auto` y botones fijos a pie de modal (accesibles a 375 px).
+- Se conservan: guarda de doble envío (`enviando`), errores, selección local, `ya-respondida` con refresh, y al éxito la vista sellada existente (`router.refresh()` → `Confirmada`).
+
+**Sin tocar:** `lib/rsvp-nucleo.ts` (núcleo transaccional), CAS, contrato de `confirmarAsistencia`, tokens, reglas de irreversibilidad, schema, migraciones, orden de secciones ni paleta. Demo y vista previa siguen completamente inertes (no abren diálogo ni llaman a la acción).
+
+### 26.3 Verificación ejecutada (sin escrituras ni RSVP reales)
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | 0 (con dev detenido) |
+| Prueba pura `construirResumen` (todos / algunos / nadie / id ajeno) | **4/4 PASS** (script temporal eliminado) |
+| Estática: `confirmarAsistencia` solo en el handler final; sin táctiles/`onSubmit`/`<form>`; botones `type="button"` | Confirmado |
+
+### 26.4 Cierre y aprobación
+
+- **Revisión manual general: APROBADA por el dueño.** El flujo **"Revisar respuesta" → resumen → "Sí, enviar respuesta"** funciona según lo esperado; **cancelar conserva la selección y no registra respuesta**; **demo y vista previa siguen inertes**.
+- **Sin cambios** en el núcleo transaccional (`lib/rsvp-nucleo.ts`), el CAS (`UPDATE ... WHERE respondida = false`) ni las reglas de irreversibilidad. Contrato de `confirmarAsistencia`, tokens, schema y migraciones intactos.
+- No se registran tiempos ni resultados individuales de las pruebas manuales. No se ejecutaron RSVP reales, no se modificaron datos y no se hizo push ni deploy.
+- **Commit:** `cb63b05` — `feat: revision previa al envio irreversible del RSVP` (4 archivos, 278 inserciones / 11 eliminaciones): `lib/rsvp-resumen.ts`, `components/invitacion/rsvp-confirmacion.tsx`, `components/invitacion/rsvp-formulario.tsx` y `components/invitacion/rsvp.tsx`. Sin cambios en núcleo, CAS, contrato, schema ni migraciones.
