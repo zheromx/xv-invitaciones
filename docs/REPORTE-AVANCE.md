@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `8e8e20c` — `docs: documentar el telefono de contacto y la importacion Excel pendiente` · **Working tree:** importador Excel sin commitear
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `7bc0efc` — `feat: importar invitaciones desde Excel` · **Working tree:** limpio
 
 ---
 
