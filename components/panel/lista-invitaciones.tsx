@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Eye,
+  FileSpreadsheet,
   Link2,
   Lock,
   MessageCircleMore,
@@ -91,13 +92,22 @@ export function ListaInvitaciones({
             Crea, edita y comparte los enlaces de confirmación.
           </p>
         </div>
-        <a
-          href="/panel/invitaciones/nueva"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-eucalipto-700 px-4 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
-        >
-          <Plus className="h-4 w-4" />
-          Nueva invitación
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/panel/invitaciones/importar"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-dorado/50 px-4 text-sm font-semibold text-eucalipto-700 hover:bg-dorado/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Importar Excel
+          </a>
+          <a
+            href="/panel/invitaciones/nueva"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-eucalipto-700 px-4 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nueva invitación
+          </a>
+        </div>
       </div>
 
       {!hayEvento ? (

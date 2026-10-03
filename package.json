@@ -25,6 +25,7 @@
     "react-hook-form": "^7.88.0",
     "tailwind-merge": "^3.7.0",
     "uploadthing": "^7.7.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.6.5"
   },
   "devDependencies": {

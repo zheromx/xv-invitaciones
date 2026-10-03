@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `eba8875` — `feat: telefono de contacto opcional por invitacion para dirigir wa.me` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `8e8e20c` — `docs: documentar el telefono de contacto y la importacion Excel pendiente` · **Working tree:** importador Excel sin commitear
 
 ---
 
@@ -580,15 +580,48 @@ Campo privado del panel que solo dirige el enlace de WhatsApp (`wa.me`); nunca s
 - **Panel:** columna **Contacto** en `components/panel/lista-invitaciones.tsx` (visible solo en el panel) y `wa.me` con destinatario cuando existe teléfono; sin teléfono se conserva `https://wa.me/?text=...`.
 - **Privacidad:** `telefono` no se agrega a `lib/invitacion.ts` (allowlist pública), `app/invitacion/**` ni `components/templates/**`; verificado con búsqueda = 0 coincidencias.
 - **Validaciones estáticas:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` en verde. **Pruebas puras aprobadas** sobre `lib/telefono.ts` (11 casos: formatos válidos → `529339876543`; `+52 1 ...`, largos incorrectos, letras/extensiones y vacío → `null`; formateo `+52 933 987 6543`).
-- **Pendiente:** pruebas funcionales con escritura (crear/editar con teléfono, `wa.me` con y sin destinatario), sujetas a autorización explícita de fixtures.
+- **Verificado (núcleo):** crear con teléfono, editar y borrar → persistencia canónica (`529339876543` → `529331111111`) y residual 0.
+- **Pendiente (UI):** WhatsApp sin teléfono (fallback sin destinatario) y bloqueo visual del teléfono en invitaciones respondidas.
 
 ---
 
-## 24. Importación de invitaciones desde Excel (`.xlsx`) — en curso
+## 24. Importación de invitaciones desde Excel (`.xlsx`)
 
-Entregable aprobado, aún no implementado al cierre de esta sección.
+Implementada y probada de punta a punta (análisis, confirmación, duplicados y concurrencia contra el Route Handler real con sesión autenticada).
 
-- **Dependencia:** SheetJS `xlsx` 0.20.3 desde el CDN oficial, fijada en `package.json`/`package-lock.json`, uso exclusivo en servidor (sin scripts CDN en el navegador ni servicios externos de parseo).
-- **Alcance:** solo altas, agrupando filas por teléfono + título normalizados; sin actualización, fusión ni sobrescritura. Persistencia atómica por lote bajo `pg_advisory_xact_lock` por evento; el evento se deriva siempre de la sesión.
-- **Transporte:** Route Handlers (`GET` plantilla, `POST` con operación explícita análisis/confirmación), con `auth()` por operación; la confirmación reenvía y revalida el archivo.
-- **Pendiente:** implementación, verificaciones sin escritura y plan de pruebas con escritura (a autorizar).
+- **Dependencia:** SheetJS `xlsx` 0.20.3 desde el CDN oficial, fijada en `package.json`/`package-lock.json`, uso exclusivo en servidor (sin scripts CDN en el navegador ni servicios externos). `npm audit` no marca `xlsx`; las 13 vulnerabilidades reportadas son preexistentes (`next`, `prisma`, `uploadthing`, `eslint`).
+- **Archivos:** `lib/xlsx-import.ts` (firma ZIP, lectura con `sheetRows`, detección de exceso, plantilla solo con encabezados), `lib/importacion-invitaciones.ts` (puro: encabezados fila 1, fórmulas por columna, agrupación por teléfono + título normalizados, ≤25 personas, duplicados, `521`), `lib/importacion-nucleo.ts` (lock + transacción + reintento por colisión de token), `app/api/panel/invitaciones/importar/route.ts` (`GET` plantilla / `POST` análisis o confirmación), `app/panel/invitaciones/importar/page.tsx` y `components/panel/importador-invitaciones.tsx` (asistente), botón en la lista.
+- **Lock:** `pg_advisory_xact_lock(namespace::int, hash32("importacion:"+eventoId)::int)` mediante `$executeRaw` (con `$queryRaw` fallaba por deserializar `void`; con parámetros sin cast Prisma los enviaba como `bigint`). Namespace fijo `19750323`; clave derivada del evento de la sesión.
+- **Transporte:** Route Handlers con `auth()` por operación (no depende del `proxy`); límite de archivo 2 MB separado del de cuerpo 4 MB; la confirmación reenvía y revalida todo el archivo.
+- **Protección de datos:** antes/después de las pruebas, hashes SHA‑256 de Evento, cronograma, regalos/mesas, galería, URLs de fotos y música y Usuario de **ambos** eventos → **idénticos**; conteos finales idénticos a los iniciales (5 invitaciones / 15 personas).
+- **Pruebas HTTP reales** (`npm run start` en `:3210`, sesión válida emitida server-side, `runId 20261003-6dfcab90`; evidencia recuperada de `http-result.json`, `conc1.*` y `conc2.*`, sin repetir pruebas):
+
+  | Caso | Código | Resultado |
+  |---|---|---|
+  | `POST` sin sesión | **401** | `{"error":"no-autorizado"}` — sin escrituras |
+  | `GET` sin sesión | **401** | — |
+  | `GET` plantilla | **200** | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, 15 937 bytes |
+  | `analizar` válido | **200** | 2 grupos / 4 personas; sin bloqueantes ni advertencias |
+  | `analizar` errores de fila | **422** | 3 errores: caracteres (fila 2), `521` "quita el 1…" (fila 3), fórmula (fila 4) |
+  | `analizar` duplicado | **422** | "JOSE" repetido en el grupo |
+  | `analizar` encabezado faltante | **422** | falta "Familia/Grupo" en la fila 1 |
+  | `confirmar` válido | **200** | `{"creadas":2}` |
+  | re-`confirmar` | **409** | `duplicados`, 2 conflictos (`VALIDO A`/`B`) |
+
+- **Concurrencia (W3), evidencia `conc1.code`/`conc2.code`:**
+  - Solicitud 1 → **200** `{"creadas":2}`.
+  - Solicitud 2 → **409** `{"error":"duplicados","conflictos":[CONC A, CONC B]}`.
+  - **Persistido: 2 invitaciones en total** (un solo lote); coincide con `creados.json` (categoría concurrencia = 2).
+- **W4 (300 grupos / 1000 personas):** **200** `{"creadas":300}`; **tiempo total de la solicitud = 1.22 s** (cronómetro alrededor de la llamada HTTP completa).
+  - **Tiempo de transacción: NO MEDIDO** — no se cronometró por separado el `$transaction` ni quedó instrumentación para ello; no debe inferirse.
+  - **`timeout 15000` y `maxWait 5000`: se mantuvieron sin cambios** (confirmado en `lib/importacion-nucleo.ts`, `{ maxWait: 5000, timeout: 15000 }`).
+- **Fixtures:** 304 invitaciones / 1008 personas creadas; limpieza por IDs exactos = **0 residuales**.
+- **Rollback:** fallo controlado dentro de la transacción (`PrismaClientValidationError` en `persona.createMany` tras insertar invitaciones) → reversión total y **0 residuales**. Sin instrumentación permanente.
+- **Teléfono (W1, núcleo):** crear con `529339876543`, editar a `529331111111`, borrar → residual 0; URL `wa.me/${destino}` verificada en código.
+- **Verificaciones manuales confirmadas por el dueño (UI):**
+  - Descarga y carga de la plantilla Excel.
+  - Importación de **8 personas en 2 invitaciones** y verificación en el panel.
+  - Modificación y guardado de una invitación.
+  - Visualización de la invitación pública.
+  - Apertura real de WhatsApp con destinatario.
+- **Pendiente:** WhatsApp sin teléfono (fallback sin destinatario en la UI), bloqueo visual del teléfono en invitaciones respondidas, y errores del importador mostrados desde la UI.
