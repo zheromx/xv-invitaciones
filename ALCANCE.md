@@ -59,6 +59,7 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Tablero de conteo: por invitación (respondida / sin responder) y total de personas confirmadas/declinadas
 - Diseño responsivo, optimizado para celulares y conexiones débiles
 - Teléfono de contacto opcional por invitación (privado del panel; solo dirige el enlace de WhatsApp)
+- Mensaje de WhatsApp configurable por evento (privado del panel; marcador opcional `{titulo}`; el enlace de cada invitación se agrega automáticamente al final, con fallback al mensaje fijo)
 - Importación de invitaciones desde Excel (`.xlsx`) con plantilla, análisis/previsualización, errores por fila y confirmación explícita (solo altas)
 
 ### Fuera de esta versión

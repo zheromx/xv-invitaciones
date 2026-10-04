@@ -17,6 +17,7 @@ import {
 import { Fragment, useState } from "react";
 import { ConfirmacionBorrado } from "@/components/panel/confirmacion-borrado";
 import { formatearTelefono } from "@/lib/telefono";
+import { resolverMensajeWhatsApp } from "@/lib/whatsapp-mensaje";
 
 export type FilaInvitacion = {
   id: string;
@@ -39,9 +40,11 @@ function iniciales(titulo: string): string {
 export function ListaInvitaciones({
   invitaciones,
   hayEvento,
+  mensajeWhatsApp,
 }: {
   invitaciones: FilaInvitacion[];
   hayEvento: boolean;
+  mensajeWhatsApp: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [filtro, setFiltro] = useState<"todas" | "respondida" | "sin-responder">("todas");
@@ -62,7 +65,11 @@ export function ListaInvitaciones({
   };
 
   const compartirWhatsApp = (fila: FilaInvitacion) => {
-    const texto = `¡Hola ${fila.titulo}! Están invitados a mis XV años. Confirmen su asistencia aquí: ${fila.url}`;
+    const texto = resolverMensajeWhatsApp(
+      fila.titulo,
+      mensajeWhatsApp,
+      fila.url
+    );
     const destino = fila.telefono ?? "";
     window.open(`https://wa.me/${destino}?text=${encodeURIComponent(texto)}`, "_blank");
   };

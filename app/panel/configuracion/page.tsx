@@ -11,6 +11,7 @@ import {
 import { BloqueImagenes } from "@/components/panel/imagenes-evento";
 import { BloqueRegalos } from "@/components/panel/regalos-evento";
 import { BloqueMusica } from "@/components/panel/musica-evento";
+import { BloqueWhatsApp } from "@/components/panel/whatsapp-evento";
 
 export const dynamic = "force-dynamic";
 
@@ -140,6 +141,7 @@ export default async function PaginaConfiguracionEvento() {
         }}
       />
       <BloqueMusica musicaUrl={evento.musicaUrl ?? null} />
+      <BloqueWhatsApp inicial={evento.mensajeWhatsApp ?? ""} />
     </div>
   );
 }

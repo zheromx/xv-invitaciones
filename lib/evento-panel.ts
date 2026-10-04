@@ -33,6 +33,7 @@ export async function obtenerEventoConfiguracionSesion() {
       recepcionMapaUrl: true,
       codigoVestimenta: true,
       infoAdicional: true,
+      mensajeWhatsApp: true,
       musicaUrl: true,
       cronograma: {
         orderBy: { orden: "asc" },

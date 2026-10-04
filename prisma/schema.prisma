@@ -76,6 +76,9 @@ model Evento {
 
   infoAdicional     String?      // ej. "no se admiten niños", estacionamiento, etc.
 
+  // Mensaje privado del panel para compartir por WhatsApp (no público).
+  mensajeWhatsApp   String?
+
   fotoPrincipalUrl  String?      // foto de portada de la invitación
   musicaUrl         String?      // pista MP3 de fondo (opcional)
 

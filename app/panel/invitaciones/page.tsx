@@ -48,8 +48,20 @@ export default async function PaginaInvitaciones() {
       })
     );
 
-    return <ListaInvitaciones invitaciones={filas} hayEvento={true} />;
+    return (
+      <ListaInvitaciones
+        invitaciones={filas}
+        hayEvento={true}
+        mensajeWhatsApp={evento.mensajeWhatsApp}
+      />
+    );
   }
 
-  return <ListaInvitaciones invitaciones={[]} hayEvento={false} />;
+  return (
+    <ListaInvitaciones
+      invitaciones={[]}
+      hayEvento={false}
+      mensajeWhatsApp={null}
+    />
+  );
 }

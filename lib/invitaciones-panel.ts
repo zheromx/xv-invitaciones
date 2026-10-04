@@ -1,12 +1,15 @@
 import { auth } from "@/auth";
 import { prisma } from "./prisma";
 
-export async function obtenerEventoSegunSesion(): Promise<{ id: string } | null> {
+export async function obtenerEventoSegunSesion(): Promise<{
+  id: string;
+  mensajeWhatsApp: string | null;
+} | null> {
   const sesion = await auth();
   if (!sesion?.user) return null;
   return prisma.evento.findFirst({
     where: { usuarioId: sesion.user.id },
-    select: { id: true },
+    select: { id: true, mensajeWhatsApp: true },
   });
 }
 
