@@ -158,14 +158,16 @@ export function ListaInvitaciones({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            {visibles.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-zinc-500">
-                {invitaciones.length === 0
-                  ? "Todavía no hay invitaciones. Crea la primera."
-                  : "Ninguna invitación coincide con la búsqueda o el filtro."}
-              </p>
-            ) : (
+          {visibles.length === 0 && (
+            <p className="px-4 py-10 text-center text-sm text-zinc-500">
+              {invitaciones.length === 0
+                ? "Todavía no hay invitaciones. Crea la primera."
+                : "Ninguna invitación coincide con la búsqueda o el filtro."}
+            </p>
+          )}
+
+          <div className="hidden md:block md:overflow-x-auto">
+            {visibles.length > 0 && (
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
@@ -330,6 +332,155 @@ export function ListaInvitaciones({
               </table>
             )}
           </div>
+
+          {visibles.length > 0 && (
+            <ul className="divide-y-2 divide-zinc-200 md:hidden">
+              {visibles.map((fila) => (
+                <li key={fila.id} className="px-4 py-5">
+                  <article className="min-w-0 space-y-3">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-eucalipto-100 font-serif text-sm text-eucalipto-800">
+                        {iniciales(fila.titulo)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="break-words text-sm font-medium text-zinc-800">
+                          {fila.titulo}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                          {fila.respondida ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-eucalipto-100 px-2.5 py-0.5 text-xs font-medium text-eucalipto-800">
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                              Respondida
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400" />
+                              Sin responder
+                            </span>
+                          )}
+                          {fila.respondida && fila.respondidaEn && (
+                            <span className="text-xs text-zinc-500">
+                              Confirmada el {fila.respondidaEn}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-600">
+                      <span className="font-semibold text-zinc-800">
+                        {fila.totalPersonas}{" "}
+                        {fila.totalPersonas === 1 ? "persona" : "personas"}
+                      </span>
+                      <span className="text-zinc-500">
+                        {fila.respondida
+                          ? `${fila.confirmadas} confirmadas`
+                          : "Pendiente"}
+                      </span>
+                      {fila.telefono && (
+                        <span className="inline-flex min-w-0 items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                          <span className="break-all">
+                            {formatearTelefono(fila.telefono)}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+
+                    {fila.integrantes && (
+                      <p className="break-words text-sm text-zinc-600">
+                        {fila.integrantes}
+                      </p>
+                    )}
+
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => compartirWhatsApp(fila)}
+                        title={`Compartir por WhatsApp: ${fila.titulo}`}
+                        aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-eucalipto-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+                      >
+                        <MessageCircleMore className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copiarEnlace(fila)}
+                        title={`Copiar enlace: ${fila.titulo}`}
+                        aria-label={`Copiar enlace: ${fila.titulo}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-300 text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2"
+                      >
+                        <Link2 className="h-5 w-5" />
+                      </button>
+                      <a
+                        href={fila.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={`Ver invitación: ${fila.titulo}`}
+                        aria-label={`Ver invitación: ${fila.titulo}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-300 text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </a>
+                      <a
+                        href={`/panel/invitaciones/${fila.id}/editar`}
+                        title={
+                          fila.respondida
+                            ? `Ver detalle (solo lectura): ${fila.titulo}`
+                            : `Editar: ${fila.titulo}`
+                        }
+                        aria-label={
+                          fila.respondida
+                            ? `Ver detalle (solo lectura): ${fila.titulo}`
+                            : `Editar: ${fila.titulo}`
+                        }
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-300 text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2"
+                      >
+                        {fila.respondida ? (
+                          <Lock className="h-5 w-5" />
+                        ) : (
+                          <Pencil className="h-5 w-5" />
+                        )}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAbiertaId((actual) =>
+                            actual === fila.id ? null : fila.id
+                          )
+                        }
+                        title={`Eliminar invitación: ${fila.titulo}`}
+                        aria-label={`Eliminar invitación: ${fila.titulo}`}
+                        aria-expanded={abiertaId === fila.id}
+                        aria-controls={`confirmar-borrado-movil-${fila.id}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    {abiertaId === fila.id && (
+                      <div
+                        id={`confirmar-borrado-movil-${fila.id}`}
+                        className="rounded-2xl bg-red-50/40 px-1 py-3"
+                      >
+                        <ConfirmacionBorrado
+                          controlado
+                          abierto
+                          invitacionId={fila.id}
+                          titulo={fila.titulo}
+                          totalPersonas={fila.totalPersonas}
+                          respondida={fila.respondida}
+                          confirmadas={fila.confirmadas}
+                          onCerrar={() => setAbiertaId(null)}
+                        />
+                      </div>
+                    )}
+                  </article>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {visibles.length > 0 && (
             <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-500">
