@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `cb63b05` — `feat: revision previa al envio irreversible del RSVP` · **Working tree:** limpio
+**Fecha:** 23 de septiembre de 2026 · **Último commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` · **Working tree:** limpio
 
 ---
 
@@ -699,3 +699,60 @@ Reglas de interacción:
 - **Sin cambios** en el núcleo transaccional (`lib/rsvp-nucleo.ts`), el CAS (`UPDATE ... WHERE respondida = false`) ni las reglas de irreversibilidad. Contrato de `confirmarAsistencia`, tokens, schema y migraciones intactos.
 - No se registran tiempos ni resultados individuales de las pruebas manuales. No se ejecutaron RSVP reales, no se modificaron datos y no se hizo push ni deploy.
 - **Commit:** `cb63b05` — `feat: revision previa al envio irreversible del RSVP` (4 archivos, 278 inserciones / 11 eliminaciones): `lib/rsvp-resumen.ts`, `components/invitacion/rsvp-confirmacion.tsx`, `components/invitacion/rsvp-formulario.tsx` y `components/invitacion/rsvp.tsx`. Sin cambios en núcleo, CAS, contrato, schema ni migraciones.
+
+---
+
+## 27. Mensaje de WhatsApp personalizable por Evento
+
+Texto que acompaña al enlace al compartir manualmente cada invitación por `wa.me`. Configurable **por Evento** (no por invitación), **privado del panel**. El teléfono por invitación sigue siendo únicamente el destinatario.
+
+### 27.1 Schema y migración
+
+- **Campo:** `Evento.mensajeWhatsApp String?` (TEXT NULL).
+- **Migración registrada:** `prisma/migrations/20261003010000_add_mensaje_whatsapp_to_evento/migration.sql`:
+  ```sql
+  -- Mensaje privado del panel que acompaña al enlace al compartir por WhatsApp.
+  -- Migración aditiva y nullable: las filas existentes quedan en NULL (fallback actual).
+  ALTER TABLE "Evento" ADD COLUMN "mensajeWhatsApp" TEXT;
+  ```
+- La columna fue **creada manualmente** por el dueño en Supabase (base compartida, sin `_prisma_migrations`). Verificada por solo lectura en `information_schema.columns`: `public.Evento.mensajeWhatsApp`, `data_type=text`, `is_nullable=YES`, `column_default=null`. Sin backfill. No se ejecutó `migrate deploy`/`dev` ni se tocó `_prisma_migrations`.
+
+### 27.2 Comportamiento
+
+- **Helper puro** `lib/whatsapp-mensaje.ts`:
+  - `MENSAJE_WHATSAPP_FALLBACK = "¡Hola {titulo}! Están invitados a mis XV años. Confirmen su asistencia aquí:"` y `LIMITE_MENSAJE_WHATSAPP = 1000`.
+  - `resolverMensajeWhatsApp(titulo, mensaje, url)`: `null`/`undefined`/vacío → fallback; personalizado → `trim` y sin marcador queda literal. Sustituye **todas** las apariciones de `{titulo}` de forma **literal** (`split/join`, sin interpretar `$`, sin alias y sin recursión). Luego anexa `\n\n` + URL **una sola vez al final**.
+  - **Diferencia intencional:** el fallback actual unía el cuerpo y la URL con **un espacio**; ahora se separan con **dos saltos de línea**. El cuerpo es idéntico, pero el mensaje completo **no** es igual byte a byte.
+  - `validarMensajeWhatsAppEntrante(bruto)`: estricta. Entrada ausente o de tipo no-string → inválido (no se convierte a `null`); string vacío o solo espacios → `null`; `>1000` tras trim → inválido.
+- **Puntos de uso:** `components/panel/lista-invitaciones.tsx` compone el texto con el helper y aplica `encodeURIComponent` **una sola vez** sobre el mensaje final al abrir `https://wa.me/${destino}?text=…` (`_blank`), con `destino = fila.telefono ?? ""` (con o sin destinatario). "Copiar enlace" sigue copiando solo la URL. `urlPublicaInvitacion(token)` sigue siendo la fuente del enlace absoluto.
+- **Panel:** bloque independiente **"10. Mensaje de WhatsApp"** (`components/panel/whatsapp-evento.tsx`) con textarea controlada, contador `x/1000`, explicación del marcador `{titulo}`, aviso de que el enlace se agrega solo, y previsualización textual de ejemplo (título "Familia Rodríguez" y URL ficticia `https://ejemplo.test/...`, sin tokens reales y sin botón `wa.me`). Guarda con su propia Server Action (`lib/acciones-whatsapp.ts` + `lib/whatsapp-nucleo.ts`), que actualiza **solo** `Evento.mensajeWhatsApp` del evento derivado de `session.user.id` y revalida `/panel/configuracion` y `/panel/invitaciones`. **No** extiende `ejecutarActualizarEvento` ni el payload del formulario base.
+- **Privacidad:** el campo no se añadió a `DatosEvento`, `lib/invitacion.ts`, `obtenerVistaPreviaSesion`, plantillas, demo ni RSVP. El listado lo recibe como prop del componente cliente privado del panel (`obtenerEventoSegunSesion` extendido). Verificado que no hay spreads del `Evento` completo hacia contratos públicos.
+- **Sin tocar:** `Invitacion`, `Persona`, tokens, teléfono, Excel, RSVP, cronograma, imágenes, plantillas ni metadata. Cambiar el mensaje no altera invitaciones existentes.
+
+### 27.3 Verificación ejecutada (sin escrituras)
+
+| Verificación | Resultado |
+|---|---|
+| Puro helper/validación (fallback null/undefined/espacios; redacción y saludo; sin marcador; 1 y varias `{titulo}`; título persona/pareja/familia; título con `$ & tildes {}` literal; sin recursión; saltos; URL una sola vez y al final; 1000/1001; vacío→null; no-string→inválido; encode/decode; wa.me con/sin teléfono) | **29/29 PASS** (script temporal eliminado) |
+| Puro emojis: `resolverMensajeWhatsApp` → `encodeURIComponent` una vez → `decodeURIComponent` una vez (👋/👇, acentos, ñ, `{titulo}`, título con caracteres especiales) | **14/14 PASS**, sin `U+FFFD` y sin doble codificación (script temporal eliminado) |
+| Estática: `mensajeWhatsApp` ausente en `lib/invitacion.ts`, `lib/evento.ts`, templates, `app/invitacion`, `components/invitacion` y mock | Confirmado (0 coincidencias) |
+| Mutación acotada: `whatsapp-nucleo.ts` → `where: { id }` + `data: { mensajeWhatsApp }` | Confirmado |
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | 0 (dev detenido; Prisma Client regenerado tras confirmar la columna) |
+
+### 27.4 Cierre, aprobación manual y nota sobre emojis
+
+- **Funcionalidad aceptada por el dueño.** Confirmó manualmente: **guardado** del mensaje, **reemplazo del marcador `{titulo}`** y que **la URL individual de la invitación se añade automáticamente al final**.
+- **Campo / bloque / guardado independientes:** `Evento.mensajeWhatsApp String?`, bloque **"10. Mensaje de WhatsApp"** y su Server Action dedicada (sin extender el formulario base ni `ejecutarActualizarEvento`).
+- **Fallback:** vacío/solo espacios → `NULL` y se usa el mensaje fijo vigente (redacción y saludo intactos).
+- **URL automática:** siempre al final, una sola vez, con la URL absoluta de esa invitación (`urlPublicaInvitacion(token)`).
+- **Separador antes de la URL (cambio intencional documentado):** el fallback anterior unía el cuerpo y la URL con **un espacio**; ahora el helper anexa **dos saltos de línea** (`\n\n`) antes de la URL, tanto en el fallback como en el personalizado. El cuerpo es idéntico; el mensaje completo **no** es igual byte a byte a propósito.
+- **Verificaciones puras vs. manuales:** las cifras de §27.3 (**29/29** helper/validación y **14/14** emojis) son **pruebas puras** ejecutadas sin BD. Las confirmaciones de **guardado**, **reemplazo de `{titulo}`** y **URL al final** son **manuales** del dueño; no se cronometraron ni se documentan resultados individuales adicionales.
+- **Emojis (incidencia cerrada por decisión del dueño):** en el breakpoint real el texto **conservaba los emojis**, su **codificación era correcta** y **no contenía `U+FFFD`**. No se declara una causa raíz externa comprobada. La incidencia se **cierra por decisión operativa: usar mensajes sin emojis, sin corrección adicional**. No se agregaron filtros, prohibiciones de emojis ni normalización de saltos de línea.
+- **Límite de la prueba manual:** no se declara verificada la apertura de la **URL pública** desde esta prueba: el enlace observado era **localhost**.
+- **Datos reales:** no se modificó el mensaje almacenado de Esther; el dueño lo editará manualmente.
+- **Commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` (13 archivos, 283 inserciones / 5 eliminaciones): `prisma/schema.prisma`, la migración `20261003010000_add_mensaje_whatsapp_to_evento`, `lib/whatsapp-mensaje.ts`, `lib/whatsapp-nucleo.ts`, `lib/acciones-whatsapp.ts`, `components/panel/whatsapp-evento.tsx`, `components/panel/lista-invitaciones.tsx`, `lib/evento-panel.ts`, `lib/invitaciones-panel.ts`, `app/panel/configuracion/page.tsx`, `app/panel/invitaciones/page.tsx`, `AGENTS.md` y `ALCANCE.md`. Sin push ni deploy.
+
+Sin push ni deploy. `PLANTILLAS.md` sin cambios.
