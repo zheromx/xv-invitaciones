@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 23 de septiembre de 2026 · **Último commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` · **Working tree:** limpio
+**Fecha:** 3 de octubre de 2026 · **Último commit:** `9ebb884` — `feat: listado de invitaciones en tarjetas para movil sin scroll horizontal` · **Working tree:** limpio al cerrar este entregable
 
 ---
 
@@ -759,3 +759,98 @@ Texto que acompaña al enlace al compartir manualmente cada invitación por `wa.
 - **Commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` (13 archivos, 283 inserciones / 5 eliminaciones): `prisma/schema.prisma`, la migración `20261003010000_add_mensaje_whatsapp_to_evento`, `lib/whatsapp-mensaje.ts`, `lib/whatsapp-nucleo.ts`, `lib/acciones-whatsapp.ts`, `components/panel/whatsapp-evento.tsx`, `components/panel/lista-invitaciones.tsx`, `lib/evento-panel.ts`, `lib/invitaciones-panel.ts`, `app/panel/configuracion/page.tsx`, `app/panel/invitaciones/page.tsx`, `AGENTS.md` y `ALCANCE.md`. Validado en producción sobre el despliegue de Vercel.
 
 Entregable cerrado y **funcionalmente validado en producción**. `PLANTILLAS.md` y las plantillas no se tocaron.
+
+---
+
+## 28. Listado de invitaciones utilizable desde el teléfono (sin scroll horizontal)
+
+Adaptación de la presentación del listado de invitaciones del panel para que a **375 px** se pueda identificar una invitación y abrir su WhatsApp **sin desplazamiento lateral**. El scroll **vertical** de una lista larga se acepta; el problema a resolver era exclusivamente el **horizontal**.
+
+### 28.1 Diagnóstico
+
+`components/panel/lista-invitaciones.tsx` renderizaba una sola `<table className="w-full">` de 6 columnas dentro de `overflow-x-auto`, con 5 botones de icono de `h-8 w-8` en la celda de acciones (≈176 px solo de iconos) y varias celdas con `whitespace-nowrap` (Contacto, Estado, Confirmada el). El ancho mínimo intrínseco de la fila supera con creces los 375 px, por lo que la celda de acciones —y con ella el botón de WhatsApp— quedaba fuera de pantalla y era obligatorio desplazarse lateralmente. El origen es el **ancho mínimo del layout**, no el recorte: por eso `overflow-x-hidden` / `clip` no era una solución aceptable.
+
+### 28.2 Implementación: dos presentaciones, una sola lógica
+
+Archivo modificado: **`components/panel/lista-invitaciones.tsx`** (único archivo de código tocado).
+
+- **Sin ramas por viewport en JS:** no se usa `matchMedia`, `useEffect` de resize ni estado de hidratación. La conmutación es solo de clases Tailwind (`hidden md:block` para la tabla, `md:hidden` para las tarjetas).
+- **Una sola lógica:** ambas presentaciones iteran la **misma colección `visibles`** (`lista-invitaciones.tsx:195` tabla, `:338` tarjetas), ya filtrada por `query`, `consultaTelefono` y `filtro`. Búsqueda y filtros alimentan ambas con resultados idénticos por construcción.
+- **Handlers y estado compartidos, sin duplicar lógica:** `compartirWhatsApp`, `copiarEnlace`, `mostrarToast`, `abiertaId`, `query`, `filtro` e `iniciales()` son los mismos en las dos presentaciones.
+- **Composición de WhatsApp intacta:** ambas presentaciones llaman al mismo `compartirWhatsApp(fila)`, que sigue usando `resolverMensajeWhatsApp(fila.titulo, mensajeWhatsApp, fila.url)` con `encodeURIComponent` **una sola vez** y `destino = fila.telefono ?? ""`. Se conservan marcador `{titulo}`, fallback, emojis, URL individual y destinatario por teléfono.
+- **Copiar enlace** sigue copiando únicamente `fila.url`.
+- **Bloqueo de edición de respondidas** conservado: el enlace administrativo apunta a `/panel/invitaciones/{id}/editar` y muestra candado cuando `fila.respondida`.
+
+### 28.3 Presentación móvil (375 px)
+
+Cada invitación es un bloque vertical con: avatar de iniciales, **título completo con `break-words`** (ajuste a varias líneas, sin `truncate`), badge de estado, `respondidaEn` como metadato discreto **solo cuando existe** (reutiliza el texto ya preparado por `app/panel/invitaciones/page.tsx`, sin consultas ni formateadores nuevos), y una línea de metadatos con cantidad de personas, resumen de asistencia (`N confirmadas` / `Pendiente`) y `formatearTelefono` **solo si hay teléfono**.
+
+Debajo de los metadatos y **antes de las acciones** se muestran los **nombres de las personas** separados por ", " (`fila.integrantes`, ya presente en el contrato `FilaInvitacion` y armado en `app/panel/invitaciones/page.tsx` con `personas.map((p) => p.nombre).join(", ")`). No se hizo ninguna consulta nueva. Se muestran con `break-words`, en varias líneas y sin `truncate`.
+
+**Acciones compactas, todas visibles directamente sin menú ni expansión**, en botones de **solo icono** (`h-11 w-11` = **44 × 44 px**, iconos `h-5 w-5`), dentro de un `flex flex-wrap` que permite acomodarlas en varias líneas sin provocar scroll horizontal:
+
+| Acción | Icono | Estilo | `aria-label` / `title` |
+|---|---|---|---|
+| WhatsApp (principal) | `MessageCircleMore` | relleno `bg-eucalipto-700` | `Compartir por WhatsApp: {titulo}` |
+| Copiar enlace | `Link2` | contorno neutro | `Copiar enlace: {titulo}` |
+| Ver invitación (pública) | `Eye` | contorno neutro | `Ver invitación: {titulo}` |
+| Editar / Ver detalle | `Pencil` / `Lock` | contorno neutro | `Editar: {titulo}` / `Ver detalle (solo lectura): {titulo}` |
+| Eliminar | `Trash2` | destructivo `text-red-700` con borde `border-red-200` | `Eliminar invitación: {titulo}` |
+
+Handlers, rutas, estados, bloqueo de respondidas y confirmaciones quedan **exactamente iguales**: los botones siguen llamando `compartirWhatsApp(fila)` y `copiarEnlace(fila)`, el enlace público conserva `href`/`target`/`rel` del `Eye`, el administrativo sigue en `/panel/invitaciones/{id}/editar` con candado cuando `respondida`, y `Eliminar` conserva `aria-expanded`, `aria-controls` y el mismo `setAbiertaId`.
+
+WhatsApp es la **acción visual principal** (única con relleno). Las **cinco** acciones comparten un único grupo `flex min-w-0 flex-wrap items-center gap-2`: Eliminar es el **quinto botón de icono, alineado horizontalmente** con los otros cuatro. No hay bloque, divisor ni espacio vertical exclusivos para Eliminar. La distinción destructiva se logra solo con **color rojo y borde rojo suave** (`border-red-200 text-red-700`), sin aislarlo en otra sección. En anchos muy pequeños el grupo puede pasar a dos filas, pero Eliminar sigue siendo parte del mismo grupo de acciones.
+
+### 28.4 Separación entre invitaciones
+
+- El `<ul>` móvil usa `divide-y-2 divide-zinc-200` y cada tarjeta `py-5`: línea horizontal de 2 px en gris neutro, más espacio vertical moderado que marca dónde termina una invitación y empieza la siguiente.
+- Se **reutilizó y ajustó el separador exterior existente** (`divide-y`), sin superponer un borde nuevo ni duplicar bordes.
+- `divide-y` **no dibuja línea después de la última tarjeta**.
+- Es la **única** línea divisoria interna del listado móvil: se eliminó el divisor exclusivo que tenía la zona `Eliminar`, de modo que la separación entre invitaciones ya no compite con un separador interno. La distinción de la acción destructiva se sostiene únicamente en el color y el borde rojo suave del botón.
+- Sin sombras nuevas, animaciones ni rediseño general.
+
+### 28.5 Confirmación de borrado e IDs
+
+`components/panel/confirmacion-borrado.tsx` **no se modificó** y se reutiliza en modo `controlado`, incluida la variante reforzada (escribir `ELIMINAR`) para respondidas.
+
+- **Sin IDs duplicados:** el componente **no emite ningún `id`** (solo un `aria-label` en línea, sin `aria-labelledby`, `aria-controls` ni `useId`). El único ID del subárbol de confirmación es el que genera el contenedor del padre, y cada presentación emite el suyo: `confirmar-borrado-{id}` en escritorio y `confirmar-borrado-movil-{id}` en móvil. Cada botón de eliminar apunta con `aria-controls` al panel de **su propia** presentación, de modo que la confirmación corresponde inequívocamente a la invitación seleccionada.
+- La copia oculta (`display:none`) es inerte: no es focusable ni clickeable, por lo que no interfiere con el `autoFocus` del panel visible.
+- No se cambió ninguna confirmación de negocio ni el texto de borrado.
+
+### 28.6 Anchos y control del desbordamiento
+
+- `min-w-0` en los contenedores flex de cada tarjeta y `break-words` / `break-all` en título, nombres y teléfono: una cadena larga sin espacios **no** ensancha la tarjeta.
+- Las cinco acciones ocupan `5 × 44 px` más 4 separaciones de 8 px (≈252 px), dentro de un `flex-wrap`: caben en 375 px y, si no cupieran, envolverían en varias líneas **sin** scroll horizontal.
+- **No** se usa `truncate` ni `overflow-x-hidden` / `clip` en la presentación móvil. `overflow-x-auto` se conserva **únicamente** en el contenedor de la tabla de escritorio (`md:overflow-x-auto`), donde a 768–1023 px la tabla de 6 columnas puede seguir necesitando scroll lateral: se desplaza, no se recorta.
+- Sin dependencias nuevas, sin paginación, virtualización ni envío masivo.
+
+### 28.7 Verificación ejecutada y aprobación pendiente
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | 0 (comando completo, incluido `prisma generate`, ejecutado con el dev server detenido) |
+| Estática: ambas presentaciones iteran `visibles` y reutilizan los mismos handlers | Confirmado |
+| Estática: `integrantes` disponible en el contrato, sin consultas nuevas | Confirmado (`FilaInvitacion.integrantes`) |
+| Estática: IDs únicos por presentación y `aria-controls` coincidente | Confirmado |
+| Estática: cinco acciones con `aria-label` + `title` y `h-11 w-11` (44 × 44 px) | Confirmado |
+| Estática: las cinco acciones en un único grupo `flex-wrap`; Eliminar es el quinto botón, sin bloque ni divisor propios | Confirmado |
+| Estática: `divide-y-2 divide-zinc-200` sin borde extra tras la última tarjeta | Confirmado |
+| Estática: sin `truncate`, `overflow-x-hidden` ni `clip` en móvil | Confirmado |
+| **Commit** | `9ebb884` — `feat: listado de invitaciones en tarjetas para movil sin scroll horizontal` (1 archivo, 156 inserciones / 7 eliminaciones): `components/panel/lista-invitaciones.tsx`. Tabla de escritorio sin cambios; sin tocar schema, migraciones, consultas, Server Actions, autorización, RSVP, importación Excel, teléfono ni configuración de Evento. Sin commit de push ni deploy. |
+
+**Aprobación visual del dueño PENDIENTE** (no automatizable: el proyecto no tiene framework de tests ni dependencias de navegador, y no se agregan):
+
+- [ ] A **375 px**: separación entre invitaciones claramente perceptible y sin línea sobrante al final.
+- [ ] A 375 px: las cinco acciones alineadas en una fila, con **Eliminar** como quinto botón distinguido solo por el color/borde rojo.
+- [ ] A 375 px: **nombres completos** en varias líneas, sin recorte.
+- [ ] A 375 px: botones accesibles (tamaño, separación, `aria-label`) y **ausencia de scroll horizontal**.
+- [ ] A 375 px: distribución con **títulos largos**, **con y sin teléfono**, y estados **respondida** / **sin responder**.
+- [ ] En **escritorio**: la tabla se ve igual que antes y hace scroll lateral donde corresponde.
+- [ ] Búsqueda y filtros alimentan ambas presentaciones con los mismos resultados.
+- [ ] WhatsApp y Copiar enlace apuntan a la invitación correcta.
+- [ ] La confirmación de borrado abre y se cancela en móvil, incluida la variante reforzada de respondidas. **Sin ejecutar eliminaciones reales.**
+
+No se enviaron mensajes por WhatsApp ni se declararon pruebas manuales aprobadas. `PLANTILLAS.md` sin cambios. Commit `9ebb884`; sin push ni deploy.
