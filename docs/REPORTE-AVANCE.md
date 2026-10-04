@@ -742,7 +742,7 @@ Texto que acompaña al enlace al compartir manualmente cada invitación por `wa.
 | `npx tsc --noEmit` | 0 |
 | `npm run build` | 0 (dev detenido; Prisma Client regenerado tras confirmar la columna) |
 
-### 27.4 Cierre, aprobación manual y nota sobre emojis
+### 27.4 Cierre, validación en producción y diagnóstico de emojis
 
 - **Funcionalidad aceptada por el dueño.** Confirmó manualmente: **guardado** del mensaje, **reemplazo del marcador `{titulo}`** y que **la URL individual de la invitación se añade automáticamente al final**.
 - **Campo / bloque / guardado independientes:** `Evento.mensajeWhatsApp String?`, bloque **"10. Mensaje de WhatsApp"** y su Server Action dedicada (sin extender el formulario base ni `ejecutarActualizarEvento`).
@@ -750,9 +750,12 @@ Texto que acompaña al enlace al compartir manualmente cada invitación por `wa.
 - **URL automática:** siempre al final, una sola vez, con la URL absoluta de esa invitación (`urlPublicaInvitacion(token)`).
 - **Separador antes de la URL (cambio intencional documentado):** el fallback anterior unía el cuerpo y la URL con **un espacio**; ahora el helper anexa **dos saltos de línea** (`\n\n`) antes de la URL, tanto en el fallback como en el personalizado. El cuerpo es idéntico; el mensaje completo **no** es igual byte a byte a propósito.
 - **Verificaciones puras vs. manuales:** las cifras de §27.3 (**29/29** helper/validación y **14/14** emojis) son **pruebas puras** ejecutadas sin BD. Las confirmaciones de **guardado**, **reemplazo de `{titulo}`** y **URL al final** son **manuales** del dueño; no se cronometraron ni se documentan resultados individuales adicionales.
-- **Emojis (incidencia cerrada por decisión del dueño):** en el breakpoint real el texto **conservaba los emojis**, su **codificación era correcta** y **no contenía `U+FFFD`**. No se declara una causa raíz externa comprobada. La incidencia se **cierra por decisión operativa: usar mensajes sin emojis, sin corrección adicional**. No se agregaron filtros, prohibiciones de emojis ni normalización de saltos de línea.
-- **Límite de la prueba manual:** no se declara verificada la apertura de la **URL pública** desde esta prueba: el enlace observado era **localhost**.
-- **Datos reales:** no se modificó el mensaje almacenado de Esther; el dueño lo editará manualmente.
-- **Commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` (13 archivos, 283 inserciones / 5 eliminaciones): `prisma/schema.prisma`, la migración `20261003010000_add_mensaje_whatsapp_to_evento`, `lib/whatsapp-mensaje.ts`, `lib/whatsapp-nucleo.ts`, `lib/acciones-whatsapp.ts`, `components/panel/whatsapp-evento.tsx`, `components/panel/lista-invitaciones.tsx`, `lib/evento-panel.ts`, `lib/invitaciones-panel.ts`, `app/panel/configuracion/page.tsx`, `app/panel/invitaciones/page.tsx`, `AGENTS.md` y `ALCANCE.md`. Sin push ni deploy.
+- **Breakpoint real (antes de `window.open`):** el texto contenía los **emojis correctos**, **no contenía `U+FFFD`** y `encodeURIComponent` produjo **UTF-8 correcto**. El texto que llegaba a `wa.me` era válido.
+- **Prueba manual en producción aprobada por el dueño.** En **Vercel** (`https://xv-esther.vercel.app/invitacion/<token>`) el mensaje enviado por `wa.me`: **conserva los emojis**, WhatsApp **convierte la URL en hipervínculo** y **muestra la tarjeta de previsualización** de la invitación. La tarjeta muestra la metadata dinámica correcta: **"XV de Esther | Invitación"** y la descripción de Esther.
+- **Diagnóstico contextual:** el comportamiento con emojis dañados (`�`) y sin resolución del enlace como URL pública fue **específico de la prueba con `localhost`** (`http://localhost:3000/...`, que no es una URL pública ni enlazable por WhatsApp). **No se atribuye** a la persistencia, a Prisma, a React, al helper ni a `encodeURIComponent`.
+- **Decisión final:** **los emojis están permitidos**. No se implementan filtros, prohibiciones ni cambios adicionales de codificación.
+- **Estado:** trabajo **funcionalmente validado en producción** (emoji, hipervínculo HTTPS y preview de WhatsApp). Sin cambios de código derivados de este diagnóstico.
+- **Datos reales:** no se modificó el mensaje almacenado de Esther ni ningún otro dato durante esta verificación.
+- **Commit:** `900f777` — `feat: mensaje de WhatsApp personalizable por Evento` (13 archivos, 283 inserciones / 5 eliminaciones): `prisma/schema.prisma`, la migración `20261003010000_add_mensaje_whatsapp_to_evento`, `lib/whatsapp-mensaje.ts`, `lib/whatsapp-nucleo.ts`, `lib/acciones-whatsapp.ts`, `components/panel/whatsapp-evento.tsx`, `components/panel/lista-invitaciones.tsx`, `lib/evento-panel.ts`, `lib/invitaciones-panel.ts`, `app/panel/configuracion/page.tsx`, `app/panel/invitaciones/page.tsx`, `AGENTS.md` y `ALCANCE.md`. Validado en producción sobre el despliegue de Vercel.
 
-Sin push ni deploy. `PLANTILLAS.md` sin cambios.
+Entregable cerrado y **funcionalmente validado en producción**. `PLANTILLAS.md` y las plantillas no se tocaron.
