@@ -88,7 +88,7 @@ export function ListaInvitaciones({
       (consultaTelefono.length > 0 &&
         (fila.telefono ?? "").includes(consultaTelefono));
     return coincideFiltro && coincideTexto;
-  });
+  }).sort((a, b) => a.titulo.localeCompare(b.titulo, "es", { sensitivity: "base" }));
 
   return (
     <div className="space-y-6">
@@ -171,22 +171,22 @@ export function ListaInvitaciones({
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-full px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Familia o grupo
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-px whitespace-nowrap px-3 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Contacto
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-px whitespace-nowrap px-3 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Personas
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-px whitespace-nowrap px-3 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Estado
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-px whitespace-nowrap px-3 py-3 text-[11px] font-semibold uppercase tracking-wider">
                       Confirmada el
                     </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="w-px px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider">
                       Acciones
                     </th>
                   </tr>
@@ -201,7 +201,10 @@ export function ListaInvitaciones({
                               {iniciales(fila.titulo)}
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-zinc-800">
+                              <p
+                                title={fila.titulo}
+                                className="truncate text-sm font-medium text-zinc-800"
+                              >
                                 {fila.titulo}
                               </p>
                               <p className="truncate text-xs text-zinc-500">
@@ -210,7 +213,7 @@ export function ListaInvitaciones({
                             </div>
                           </div>
                         </td>
-                      <td className="whitespace-nowrap px-4 py-3">
+                      <td className="whitespace-nowrap px-3 py-3">
                         {fila.telefono ? (
                           <span className="inline-flex items-center gap-1.5 text-xs text-zinc-600">
                             <Phone className="h-3.5 w-3.5 text-zinc-400" />
@@ -220,7 +223,7 @@ export function ListaInvitaciones({
                           <span className="text-xs text-zinc-400">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-zinc-800">
                             {fila.totalPersonas}{" "}
@@ -233,7 +236,7 @@ export function ListaInvitaciones({
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-3 py-3">
                         {fila.respondida ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-eucalipto-100 px-2.5 py-0.5 text-xs font-medium text-eucalipto-800">
                             <CheckCircle2 className="h-3.5 w-3.5" />
@@ -246,23 +249,19 @@ export function ListaInvitaciones({
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-500">
+                      <td className="whitespace-nowrap px-3 py-3 text-xs text-zinc-500">
                         {fila.respondida ? fila.respondidaEn ?? "—" : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
                           <a
-                            href={fila.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Ver invitación"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </a>
-                          <a
                             href={`/panel/invitaciones/${fila.id}/editar`}
                             title={fila.respondida ? "Ver en solo lectura" : "Editar"}
+                            aria-label={
+                              fila.respondida
+                                ? `Ver detalle (solo lectura): ${fila.titulo}`
+                                : `Editar: ${fila.titulo}`
+                            }
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
                           >
                             {fila.respondida ? (
@@ -273,15 +272,8 @@ export function ListaInvitaciones({
                           </a>
                           <button
                             type="button"
-                            title="Copiar enlace"
-                            onClick={() => copiarEnlace(fila)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
-                          >
-                            <Link2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
                             title="Compartir por WhatsApp"
+                            aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
                             onClick={() => compartirWhatsApp(fila)}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
                           >
@@ -289,9 +281,33 @@ export function ListaInvitaciones({
                           </button>
                           <button
                             type="button"
+                            title="Copiar enlace"
+                            aria-label={`Copiar enlace: ${fila.titulo}`}
+                            onClick={() => copiarEnlace(fila)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </button>
+                          <a
+                            href={fila.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Ver invitación"
+                            aria-label={`Ver invitación: ${fila.titulo}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </a>
+                          <button
+                            type="button"
                             title={fila.respondida
                               ? "Eliminar invitación respondida"
                               : "Eliminar invitación"}
+                            aria-label={
+                              fila.respondida
+                                ? `Eliminar invitación respondida: ${fila.titulo}`
+                                : `Eliminar invitación: ${fila.titulo}`
+                            }
                             aria-expanded={abiertaId === fila.id}
                             aria-controls={`confirmar-borrado-${fila.id}`}
                             onClick={() =>

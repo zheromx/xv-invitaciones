@@ -35,7 +35,8 @@ export function RsvpFormulario({
 }) {
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<Set<string>>(
-    () => new Set(personas.filter((p) => p.asiste !== false).map((p) => p.id))
+    //() => new Set(personas.filter((p) => p.asiste !== false).map((p) => p.id))
+     () => new Set()
   );
   const [enviando, setEnviando] = useState(false);
   const [revisando, setRevisando] = useState(false);

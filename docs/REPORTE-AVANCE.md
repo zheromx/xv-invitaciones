@@ -854,3 +854,85 @@ WhatsApp es la **acción visual principal** (única con relleno). Las **cinco** 
 - [ ] La confirmación de borrado abre y se cancela en móvil, incluida la variante reforzada de respondidas. **Sin ejecutar eliminaciones reales.**
 
 No se enviaron mensajes por WhatsApp ni se declararon pruebas manuales aprobadas. `PLANTILLAS.md` sin cambios. Commit `9ebb884`; sin push ni deploy.
+
+---
+
+## 29. Ajuste localizado del disparador de la revelación (`DetallesEvento`)
+
+**Fecha:** 3 de octubre de 2026 · **Cambio localizado del disparador**, sin acelerar la duración ni modificar el desplazamiento de la animación. *(Trabajo del working tree, sin commit.)*
+
+### 29.1 Diagnóstico
+
+En móvil (375 px) aparecía un espacio blanco grande después del RSVP. `opacity: 0` **no saca el elemento del flujo**, así que `DetallesEvento` —envuelto por `Revelar`— reservaba su altura completa mientras seguía invisible. En `components/invitacion/revelar.tsx` el `IntersectionObserver` entregaba el callback según los umbrales configurados: `entry.isIntersecting` solo significa "razón de intersección > 0" y **no** exige alcanzar el porcentaje; era `threshold: 0.15` (más `rootMargin: "0px 0px -8% 0px"`) el que determinaba la primera entrega. En una sección alta en móvil, esperar al ~15 % de su altura producía el vacío antes de que comenzara la aparición.
+
+### 29.2 Cambio implementado
+
+| Archivo | Acción |
+|---|---|
+| `components/invitacion/revelar.tsx` | `useEnViewport` acepta `threshold` y `rootMargin` opcionales con los **defaults actuales conservados** (`0.15` y `"0px 0px -8% 0px"`) y `= {}` para no romper `Cronograma`, que lo llama sin argumentos. `Revelar` reenvía ambos. El `useEffect` incluye `[threshold, rootMargin]` en dependencias. |
+| `components/templates/elegante-eucalipto.tsx:58` | Solo el wrapper de `DetallesEvento` pasa a `<Revelar threshold={0} rootMargin="0px">`. Los otros 6 wrappers `<Revelar>` conservan sus defaults. |
+
+- Se conservan: `DetallesEvento` **dentro** de `Revelar`, la duración (`duration-500 ease-out`), el desplazamiento (`translate-y-4` → `translate-y-0`) y la opacidad (`opacity-0` → `opacity-100`).
+- Sin temporizadores, retrasos ni dependencias nuevas. Se conservan `prefers-reduced-motion`, el fallback sin `IntersectionObserver`, la revelación única (`unobserve`) y el `disconnect`.
+- Orden de secciones, diseño, paleta, textos, datos, RSVP y rutas sin cambios.
+
+### 29.3 Verificación ejecutada (resultados reales de ese entregable)
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK (compilación completa; dev server detenido previamente y restaurado) |
+| Estática: solo `DetallesEvento` con `threshold={0} rootMargin="0px"` | Confirmado (1 `<Revelar>` con props; 6 sin props) |
+| Estática: `Cronograma` usa `useEnViewport<HTMLElement>()` sin argumentos | Confirmado (conserva defaults) |
+
+**Aprobación visual a 375 px: PENDIENTE del dueño.** Sin commit, push ni deploy.
+
+---
+
+## 30. Tabla de escritorio del listado de invitaciones (ajuste de anchos; problema visual aplazado)
+
+**Fecha:** 4 de octubre de 2026 · Cambio **exclusivamente presentacional** en la tabla de escritorio. El problema visual de desbordamiento **NO se declara resuelto** y queda **aplazado por decisión del dueño**.
+
+### 30.1 Diagnóstico
+
+El dueño reportó que, en escritorio, la columna de acciones quedaba fuera del viewport a la derecha. La tabla de `components/panel/lista-invitaciones.tsx` tiene 6 columnas y `w-full`, pero en `table-layout: auto` **no puede encogerse por debajo de la suma de los anchos mínimos de contenido**:
+
+- Todas las columnas usaban `px-4` (32 px por columna).
+- "Contacto", "Estado" y "Confirmada el" son `whitespace-nowrap`, y el título/integrantes usan `truncate` (también `nowrap`): en auto-layout su *min-content* es el texto completo, por lo que no encogían.
+- La columna de acciones no tenía ancho explícito: 5 botones `h-8 w-8` + 4 `gap-1` = 176 px, más `px-4`.
+
+El `<main>` del panel es `max-w-5xl` (1024 px) con `px-4` ⇒ ~990 px útiles. `md:overflow-x-auto` permitía desplazarse, por lo que el problema era de **usabilidad**, no de recorte.
+
+### 30.2 Cambio implementado (solo el bloque de la tabla)
+
+Archivo modificado: **`components/panel/lista-invitaciones.tsx`** (único archivo de código).
+
+- **Columna prioritaria:** "Familia o grupo" recibe `w-full`; conserva `truncate` y ahora absorbe el ancho restante.
+- **Columnas secundarias:** "Contacto", "Personas", "Estado", "Confirmada el" y "Acciones" reciben `w-px` (encoge a su contenido, nunca por debajo) y `whitespace-nowrap` en el encabezado; las 4 centrales bajan de `px-4` a `px-3`.
+- **Acciones de escritorio:** reordenadas a **WhatsApp, Copiar enlace, Ver invitación, Editar/ver detalle, Eliminar** (mismo orden que móvil), todas como botones de icono compactos `h-8 w-8`. Se añadió `aria-label` descriptivo a las cinco (antes solo tenían `title`, que se conserva). Handlers, `href`, `aria-expanded`, `aria-controls` y confirmaciones **sin cambios**.
+- Se añadió `title={fila.titulo}` al título truncado de la columna prioritaria (tooltip con el texto completo).
+- **Sin** `table-fixed`, JavaScript, otra tabla ni `overflow-x-hidden`. Se conserva `md:overflow-x-auto` como red de seguridad (si algo no cupiera, se desplaza, no se recorta).
+- **No se tocó** la presentación móvil (`<ul>`, 336‑483), ni datos, lógica, handlers, rutas, confirmaciones, WhatsApp, teléfonos, schema, consultas, Server Actions, RSVP ni Supabase. Se conservó el cambio preexistente del working tree (`.sort(...)` en la línea 91) y los de `rsvp-formulario.tsx` / `revelar.tsx` / `elegante-eucalipto.tsx`.
+
+### 30.3 Verificación ejecutada (resultados reales)
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK (compilación completa; dev server detenido previamente y restaurado) |
+| `git diff` del archivo | Solo cambia el bloque de la tabla (`<thead>`/`<tbody>`); la versión móvil (`<ul class="... md:hidden">`) queda idéntica |
+
+- **No se declara resuelto el desbordamiento** con base en lint/tsc/build: eso solo prueba que el proyecto compila. `w-full` / `w-px` y la reducción de padding son una **estrategia a validar**, no una garantía de que la tabla quepa.
+
+### 30.4 Estado: problema visual aplazado por decisión del dueño
+
+- El ajuste de anchos (`w-full` / `w-px` / reducción de padding) y el reordenamiento de acciones **quedan implementados en el código**, pero **el problema visual de la tabla de escritorio NO se declara resuelto**: falta confirmar que las cinco acciones queden completamente visibles sin scroll horizontal al ancho de la captura del dueño.
+- **El problema visual restante queda aplazado por decisión del dueño.** **No está aprobado como resuelto** y **no se aplicará ahora otra corrección** en esta tarea.
+- `w-full` / `w-px` / padding: estrategia a validar, no garantía. Si se retoma la revisión y la tabla aún no cabe, se definirá un segundo ajuste por separado.
+- La aprobación visual móvil de §28 también sigue pendiente.
+
+Sin cambios de datos, commit, push ni deploy. `PLANTILLAS.md` sin cambios.

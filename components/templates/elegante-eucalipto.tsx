@@ -55,7 +55,7 @@ export function EleganteEucalipto({
           demostracion={demostracion}
           token={token}
         />
-        <Revelar>
+        <Revelar threshold={0} rootMargin="0px">
           <DetallesEvento evento={evento} />
         </Revelar>
         <Cronograma evento={evento} />
