@@ -66,3 +66,78 @@ export async function obtenerMetricasDashboard(): Promise<ResumenDashboard> {
     ...metricas,
   };
 }
+
+export type DetalleAsistenciaDatos = {
+  invitacionesRespondidas: {
+    id: string;
+    titulo: string;
+    personas: { id: string; nombre: string; asiste: boolean | null }[];
+  }[];
+  invitacionesSinResponder: {
+    id: string;
+    titulo: string;
+    totalPersonas: number;
+  }[];
+};
+
+export type DetalleAsistenciaDashboard =
+  | null
+  | { eventoPresente: false }
+  | ({ eventoPresente: true } & DetalleAsistenciaDatos);
+
+// Lectura autorizada y acotada del detalle de asistencia. El evento se deriva
+// SIEMPRE del usuario de la sesión (nunca de un id enviado por el navegador).
+// Se seleccionan solo los campos del detalle (sin teléfono, token ni URL
+// pública) y se resuelve en una sola consulta con sus personas: sin N+1.
+export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashboard> {
+  const sesion = await auth();
+  if (!sesion?.user) return null;
+
+  const evento = await prisma.evento.findFirst({
+    where: { usuarioId: sesion.user.id },
+    select: {
+      invitaciones: {
+        select: {
+          id: true,
+          titulo: true,
+          respondida: true,
+          personas: {
+            select: { id: true, nombre: true, asiste: true },
+          },
+        },
+      },
+    },
+  });
+  if (!evento) return { eventoPresente: false };
+
+  const invitacionesRespondidas: DetalleAsistenciaDatos["invitacionesRespondidas"] =
+    [];
+  const invitacionesSinResponder: DetalleAsistenciaDatos["invitacionesSinResponder"] =
+    [];
+
+  for (const invitacion of evento.invitaciones) {
+    if (invitacion.respondida) {
+      invitacionesRespondidas.push({
+        id: invitacion.id,
+        titulo: invitacion.titulo,
+        personas: invitacion.personas.map((persona) => ({
+          id: persona.id,
+          nombre: persona.nombre,
+          asiste: persona.asiste,
+        })),
+      });
+    } else {
+      invitacionesSinResponder.push({
+        id: invitacion.id,
+        titulo: invitacion.titulo,
+        totalPersonas: invitacion.personas.length,
+      });
+    }
+  }
+
+  return {
+    eventoPresente: true,
+    invitacionesRespondidas,
+    invitacionesSinResponder,
+  };
+}

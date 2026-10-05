@@ -9,7 +9,11 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { redirect } from "next/navigation";
-import { obtenerMetricasDashboard } from "@/lib/dashboard-panel";
+import { DetalleAsistencia } from "@/components/panel/detalle-asistencia";
+import {
+  obtenerDetalleAsistencia,
+  obtenerMetricasDashboard,
+} from "@/lib/dashboard-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -47,8 +51,11 @@ function TarjetaMetrica({
 }
 
 export default async function PaginaPanel() {
-  const resumen = await obtenerMetricasDashboard();
-  if (resumen === null) redirect("/login");
+  const [resumen, detalle] = await Promise.all([
+    obtenerMetricasDashboard(),
+    obtenerDetalleAsistencia(),
+  ]);
+  if (resumen === null || detalle === null) redirect("/login");
 
   if (!resumen.eventoPresente) {
     return (
@@ -187,6 +194,13 @@ export default async function PaginaPanel() {
             de estado automáticamente.
           </p>
         </div>
+      )}
+
+      {detalle.eventoPresente && (
+        <DetalleAsistencia
+          invitacionesRespondidas={detalle.invitacionesRespondidas}
+          invitacionesSinResponder={detalle.invitacionesSinResponder}
+        />
       )}
     </div>
   );

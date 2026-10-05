@@ -936,3 +936,137 @@ Archivo modificado: **`components/panel/lista-invitaciones.tsx`** (único archiv
 - La aprobación visual móvil de §28 también sigue pendiente.
 
 Sin cambios de datos, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
+
+---
+
+## 31. Detalle de asistencia agrupado por invitación en `/panel`
+
+**Fecha:** 4 de octubre de 2026 · Nuevo bloque de **solo lectura** debajo de las métricas actuales del dashboard. *(Trabajo del working tree, sin commit.)*
+
+### 31.1 Objetivo y ubicación
+
+Se añadió, debajo de las métricas y su nota de “Personas en invitaciones sin responder”, un bloque de ancho completo titulado **“Detalle de asistencia”**, seguido de un bloque independiente plegable **“Invitaciones sin responder (N)”** (inicialmente cerrado). No se crearon rutas nuevas ni columnas laterales. Se reutilizan estilos, colores e íconos existentes del panel; sin dependencias nuevas ni animaciones de revelado.
+
+### 31.2 Lectura autorizada y campos seleccionados
+
+La lectura vive en `lib/dashboard-panel.ts` (`obtenerDetalleAsistencia`), reutilizando el patrón de `obtenerMetricasDashboard`: el **Evento se deriva siempre de `session.user.id`** (nunca de un `eventoId`/`usuarioId` del navegador). Una sola consulta con sus relaciones, sin N+1 ni consultas por grupo:
+
+| Entidad | Campos seleccionados |
+|---|---|
+| `Invitacion` | `id`, `titulo`, `respondida` |
+| `Persona` | `id`, `nombre`, `asiste` |
+
+**No** se seleccionan `telefono`, `token`, `enviadaEn`, `respondidaEn`, URL pública ni ningún otro dato ajeno al detalle. El evento se parte en memoria en `invitacionesRespondidas` (`respondida = true`) e `invitacionesSinResponder` (`respondida = false`). Las agregaciones globales del dashboard **no se reemplazan ni recalculan** con el detalle: se conservan intactas.
+
+### 31.3 Archivos
+
+| Archivo | Tipo | Contenido |
+|---|---|---|
+| `lib/asistencia-resumen.ts` | Nuevo (puro, sin Prisma) | `construirDetalle`, `ordenarInvitacionesSinResponder`, normalización es-MX (sin tildes/mayúsculas) y tipos. Agrupación/filtrado/búsqueda/resúmenes. |
+| `components/panel/detalle-asistencia.tsx` | Nuevo (cliente) | Filtros accesibles, búsqueda, contador, render responsive y bloque `details/summary` de sin responder. Estado local mínimo. |
+| `lib/dashboard-panel.ts` | Modificado | `obtenerDetalleAsistencia` (lectura autorizada y acotada). Se conservan las agregaciones y funciones existentes. |
+| `app/panel/page.tsx` | Modificado | Obtiene resumen y detalle en paralelo y monta el bloque bajo las métricas. |
+| `docs/REPORTE-AVANCE.md` | Modificado | Esta sección. |
+
+### 31.4 Reglas implementadas
+
+- **Agrupación por `Invitacion.id`** (nunca por título ni nombre); encabezado = `Invitacion.titulo` sin anteponer “Familia”. Integrantes identificados por `Persona.id`; títulos y nombres repetidos **no se fusionan**.
+- **Orden:** grupos por título e integrantes por nombre con criterio `es-MX`, sin tildes/mayúsculas y **desempate estable por `id`**.
+- **Filtros:** “Todas las respuestas” (por defecto), “Asistirán”, “No asistirán”. Solo se consideran invitaciones con `respondida = true`. Los grupos sin integrantes que coincidan con el filtro se omiten. El **denominador de los resúmenes es el total real del grupo**, no el filtrado.
+- **Resúmenes:** “2 asistirán · 1 no asistirá” (vista completa, singular/plural correcto); “2 asistirán de 3 personas” y “1 no asistirá de 3 personas” en las vistas filtradas.
+- **Búsqueda** por título o por nombre de cualquier integrante, sin tildes/mayúsculas; al coincidir una persona se conserva el grupo completo con los integrantes permitidos por el filtro. La búsqueda **no anula el filtro** ni altera las métricas globales. Contador de “grupos · personas visibles” y estados vacíos distintos: “Aún no hay respuestas” vs “No hay resultados para esta búsqueda o filtro”.
+- **Inconsistencias (`asiste = null` en invitación respondida):** se conserva `null` en el contrato y **nunca** se convierte en negativa. Si existe al menos una, se muestra una alerta informativa (patrón existente) con el texto **“Hay respuestas con datos de asistencia incompletos”**, independiente del filtro/búsqueda. En “Todas las respuestas” el grupo afectado sigue visible (con nota discreta por grupo) aunque todos sus integrantes sean `null`. Los resúmenes de un grupo con `null` se acompañan de “· datos incompletos” para no afirmar que `true`/`false` cubren todo el grupo. No se añadió un tercer estado de RSVP ni se reparan datos.
+- **Responsive:** una sola estructura; en escritorio título/resumen a la izquierda e integrantes a la derecha con separador entre grupos (`divide-y`); en móvil se apila. Filtros con `flex-wrap` (sin scroll horizontal), nombres completos sin `truncate`, con `min-w-0` y `break-words`.
+- **Sin responder:** bloque plegable independiente y delimitado, inicialmente cerrado, con título y **cantidad de personas** ordenados alfabéticamente; no muestra respuestas individuales, no usa “pendientes” y no participa del buscador. Se mantiene separado de las negativas aun después de la fecha límite (sin modelar la fecha: no hay cambios de contrato ni de estado).
+
+### 31.5 Pruebas puras ejecutadas (datos ficticios en memoria, sin tocar BD)
+
+Script temporal con `tsx`, eliminado después. **16/16 aprobadas:**
+
+- Todos asistentes, todos negativos y mixto (resúmenes y filtros).
+- Singular/plural correcto.
+- Sin responder: orden alfabético es-MX y desempate por `id`.
+- Igual título en dos invitaciones → dos grupos; igual nombre en dos personas → no se fusionan.
+- Búsqueda por título, persona, mayúsculas y tildes; búsqueda conserva el contexto del grupo; la búsqueda no anula el filtro.
+- `null` nunca se convierte en negativa; grupo con todos `null` visible en “Todas las respuestas” pero omitido en los filtros de asistencia; la inconsistencia sigue detectada aunque la búsqueda excluya el grupo.
+- Contadores y estados vacíos.
+- Orden estable de integrantes y de grupos con desempates por `id`.
+
+### 31.6 Verificación ejecutada (resultados reales)
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK (compilación completa; no había `next dev` en ejecución, no hubo que detenerlo ni restaurarlo) |
+| Pruebas puras en memoria | 16/16 aprobadas |
+
+### 31.7 Aprobación visual pendiente
+
+**Aprobación visual pendiente del dueño.** Criterio: a 375 px el título/resumen arriba y los integrantes debajo, filtros sin scroll horizontal y nombres completos; en escritorio, dos columnas internas por grupo con separador visible. **No se declara aprobación manual por lint/build.** No se retomó el ajuste aplazado de la tabla de invitaciones de escritorio (§30).
+
+Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin seed, reset, db push, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
+
+---
+
+## 32. Exportación de la vista filtrada del detalle de asistencia a Excel (`.xlsx`)
+
+**Fecha:** 4 de octubre de 2026 · Extiende el detalle de §31 con **descarga en Excel** de la vista visible (filtro + búsqueda). Solo lectura. *(Trabajo del working tree, sin commit.)*
+
+### 32.1 Alcance
+
+- Botón **“Exportar vista a Excel”** junto al buscador/filtros, adaptado a móvil sin scroll horizontal (envoltura con `flex`).
+- Exporta **el resultado del filtro y la búsqueda activos**, con la misma lógica pura y el mismo orden que la UI. Una fila por persona visible.
+- Columnas: **Invitación**, **Persona**, **Asistencia** (título repetido en cada fila; sin celdas combinadas ni filas decorativas).
+- “Todas las respuestas” incluye asistentes y negativas visibles; “Asistirán”/“No asistirán” solo los integrantes permitidos por el filtro.
+- **No** exporta el bloque independiente de invitaciones sin responder; **no** exporta teléfono, token, URL pública, IDs ni personas con `asiste = null`. Hoja **“Asistencia”**.
+- Deshabilitado si hay cero personas visibles. La alerta de datos incompletos del dashboard permanece.
+
+### 32.2 Archivos
+
+| Archivo | Tipo | Contenido |
+|---|---|---|
+| `lib/asistencia-resumen.ts` | Modificado (puro) | `construirFilasExportacion(detalle)` (una fila por integrante visible, sin `null`), `FilaExportacion` y `MAX_LONGITUD_BUSQUEDA = 200`. |
+| `lib/xlsx-export.ts` | Nuevo (servidor) | `generarXlsxAsistencia` y `nombreArchivoAsistencia`. Importa `xlsx` (SheetJS). **No** entra al bundle cliente. |
+| `app/api/panel/asistencia/exportar/route.ts` | Nuevo (privado) | GET autenticado que valida `filtro`/`busqueda`, recalcula la vista y responde el XLSX. |
+| `components/panel/detalle-asistencia.tsx` | Modificado | Botón de exportación con `fetch` + `blob`, estado de descarga, error visible, `maxLength` de búsqueda y nota de “datos al momento de exportar”. |
+| `docs/REPORTE-AVANCE.md` | Modificado | Esta sección. |
+
+### 32.3 API y seguridad
+
+- **Autenticación**: la sesión se valida dentro del Route Handler mediante `obtenerDetalleAsistencia` (deriva el Evento de `session.user.id`); si no hay sesión devuelve **401 JSON**, sin redirigir a HTML. No se resuelve el Evento una segunda vez ni se confía solo en el proxy.
+- El navegador **solo** envía `filtro` y `busqueda` (con `URLSearchParams`, sin pre-codificar). **No** envía `eventoId`, `usuarioId` ni personas.
+- Validación server-side: `filtro ∈ {todas, asistiran, no-asistiran}` (si no, 400); `busqueda` de longitud ≤ **200** (política idéntica al `maxLength` del buscador; si excede, 400, **sin truncar**). Sin evento → 404; sin filas visibles → **400 `sin-datos`**.
+- **Generación**: lectura actual del evento autorizado (una sola consulta), `construirDetalle` + `construirFilasExportacion` (no se duplican reglas). `xlsx` permanece **exclusivamente en servidor**.
+- **Respuesta**: `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, `Content-Disposition: attachment; filename="asistencia-<filtro>-<AAAAMMDD>.xlsx"`, `Cache-Control: no-store`. El nombre identifica filtro y fecha (UTC), sin nombres personales ni texto buscado.
+- **Valores literales**: celdas de texto explícitas `{ t: "s", v }`, **sin** `f`, `F` ni `l`. No se anteponen apóstrofos; los valores se conservan exactos (incluidos los que empiezan con `=`, `+`, `-` o `@`), sin fórmulas ni hipervínculos. No se registran búsquedas ni nombres en logs. Sin almacenamiento en Supabase, UploadThing ni disco.
+- **Descarga cliente**: `fetch` + `blob` (no anchor directo ni `window.open`), con `response.ok` y `Content-Type` verificados antes de tratarla como XLSX; si el error es JSON se muestra su mensaje y **no** se descarga como Excel. Estado `descargando` (botón deshabilitado) y error visible (`role="alert"`). El `object URL` se libera tras iniciar la descarga. Nota en UI: el archivo refleja los datos al momento de exportar.
+
+### 32.4 Pruebas en memoria ejecutadas (sin tocar BD)
+
+Script temporal con `tsx`, eliminado después. **9/9 aprobadas:**
+
+- Las filas exportadas **coinciden** con las filas visibles calculadas para el mismo conjunto, en `todas`, `asistiran`, `no-asistiran` y con búsquedas (incluida mayúsculas y coincidencia por persona/título).
+- `null` nunca aparece como fila; cero filas cuando no hay visibles.
+- Nombre de archivo seguro por filtro y fecha.
+- XLSX generado y **vuelto a leer**: hoja “Asistencia”, encabezados exactos, orden, acentos/eñes conservados.
+- Prefijos `=`, `+`, `-`, `@` (p. ej. `=SUM(A1:A2)`) siguen siendo **texto** (`t: "s"`, `v` idéntico), **sin** `f`, `F` ni `l`.
+
+### 32.5 Verificación ejecutada (resultados reales)
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK; la ruta `ƒ /api/panel/asistencia/exportar` queda registrada. |
+| Pruebas de exportación en memoria | 9/9 aprobadas |
+
+- Durante `npm run build` hubo un **EPERM** de Windows al renombrar el motor de Prisma (`query_engine-windows.dll.node`), ajeno al código de este entregable; se resolvió limpiando los `.tmp` acumulados y el motor generado, y el build completó. No había `next dev` en ejecución.
+
+### 32.6 Pendiente manual
+
+**Prueba manual pendiente del dueño:** descargar y abrir el Excel con cada filtro (“Todas”, “Asistirán”, “No asistirán”) y con una búsqueda, y confirmar el deshabilitado con cero resultados y la alerta de error del endpoint. La aprobación visual móvil/escritorio de §31 también sigue pendiente. **No se declara aprobación manual por lint/build.**
+
+Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin seed, reset, db push, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
