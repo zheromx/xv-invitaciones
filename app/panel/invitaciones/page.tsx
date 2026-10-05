@@ -26,7 +26,8 @@ export default async function PaginaInvitaciones() {
         respondidaEn: true,
         personas: { select: { id: true, nombre: true, asiste: true }, orderBy: { id: "asc" } },
       },
-      orderBy: { creadaEn: "desc" },
+      orderBy: [{ creadaEn: "asc" },
+                { titulo: "asc" }],
     });
 
     const filas: FilaInvitacion[] = await Promise.all(

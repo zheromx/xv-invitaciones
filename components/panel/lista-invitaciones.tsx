@@ -88,7 +88,7 @@ export function ListaInvitaciones({
       (consultaTelefono.length > 0 &&
         (fila.telefono ?? "").includes(consultaTelefono));
     return coincideFiltro && coincideTexto;
-  }).sort((a, b) => a.titulo.localeCompare(b.titulo, "es", { sensitivity: "base" }));
+  });//.sort((a, b) => a.titulo.localeCompare(b.titulo, "es", { sensitivity: "base" }));
 
   return (
     <div className="space-y-6">
