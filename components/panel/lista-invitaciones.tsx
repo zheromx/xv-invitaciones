@@ -270,6 +270,16 @@ export function ListaInvitaciones({
                               <Pencil className="h-4 w-4" />
                             )}
                           </a>
+                          <a
+                            href={fila.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Ver invitación"
+                            aria-label={`Ver invitación: ${fila.titulo}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </a>
                           <button
                             type="button"
                             title="Compartir por WhatsApp"
@@ -288,16 +298,6 @@ export function ListaInvitaciones({
                           >
                             <Link2 className="h-4 w-4" />
                           </button>
-                          <a
-                            href={fila.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Ver invitación"
-                            aria-label={`Ver invitación: ${fila.titulo}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </a>
                           <button
                             type="button"
                             title={fila.respondida
