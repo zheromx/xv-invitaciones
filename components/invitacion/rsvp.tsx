@@ -160,7 +160,11 @@ export function Rsvp({
         {invitacion.respondida ? (
           <Confirmada invitacion={invitacion} />
         ) : interactivo && token ? (
-          <RsvpFormulario token={token} personas={invitacion.personas} />
+          <RsvpFormulario
+            token={token}
+            personas={invitacion.personas}
+            titulo={invitacion.titulo}
+          />
         ) : (
           <SinResponder invitacion={invitacion} />
         )}

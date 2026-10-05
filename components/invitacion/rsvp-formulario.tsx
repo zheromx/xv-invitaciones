@@ -29,9 +29,11 @@ const MENSAJES_ERROR: Record<
 export function RsvpFormulario({
   token,
   personas,
+  titulo,
 }: {
   token: string;
   personas: PersonaDemo[];
+  titulo: string;
 }) {
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<Set<string>>(
@@ -100,6 +102,9 @@ export function RsvpFormulario({
       <h2 className="mt-3 font-serif text-2xl text-eucalipto-700">
         Confirma tu asistencia
       </h2>
+      <p className="mt-3 font-serif text-base italic text-eucalipto-700">
+        {titulo}
+      </p>
       <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
         {personas.length} pases reservados
       </p>
