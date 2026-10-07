@@ -77,11 +77,13 @@ export type DetalleAsistenciaDatos = {
   invitacionesRespondidas: {
     id: string;
     titulo: string;
+    respondidaEn: string | null;
     personas: { id: string; nombre: string; asiste: boolean | null }[];
   }[];
   invitacionesSinResponder: {
     id: string;
     titulo: string;
+    creadaEn: string;
     totalPersonas: number;
   }[];
 };
@@ -107,6 +109,8 @@ export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashb
           id: true,
           titulo: true,
           respondida: true,
+          respondidaEn: true,
+          creadaEn: true,
           personas: {
             select: { id: true, nombre: true, asiste: true },
           },
@@ -126,6 +130,7 @@ export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashb
       invitacionesRespondidas.push({
         id: invitacion.id,
         titulo: invitacion.titulo,
+        respondidaEn: invitacion.respondidaEn?.toISOString() ?? null,
         personas: invitacion.personas.map((persona) => ({
           id: persona.id,
           nombre: persona.nombre,
@@ -136,6 +141,7 @@ export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashb
       invitacionesSinResponder.push({
         id: invitacion.id,
         titulo: invitacion.titulo,
+        creadaEn: invitacion.creadaEn.toISOString(),
         totalPersonas: invitacion.personas.length,
       });
     }

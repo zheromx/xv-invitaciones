@@ -1100,3 +1100,32 @@ Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin se
 | `npm run lint` | 0 |
 | `npx tsc --noEmit` | 0 |
 | `npx next build` | OK |
+
+---
+
+## 34. Ordenamiento del detalle de asistencia en el Dashboard
+
+**Fecha:** 6 de octubre de 2026 · Ajusta el ordenamiento interno del componente de detalle de asistencia en el dashboard (`/panel`).
+
+### 34.1 Alcance
+
+- **Invitaciones respondidas (bloque principal):** Ordenadas por fecha de confirmación (`respondidaEn`) de forma ascendente (las confirmadas más antiguas primero), con desempate por título (es-MX) e `id`.
+- **Invitaciones sin responder (bloque desplegable):** Ordenadas por fecha de creación (`creadaEn`) de forma ascendente (las creadas más antiguas primero), con desempate por título (es-MX) e `id`.
+- Heredado automáticamente por la exportación a Excel (`.xlsx`), que se genera a partir de la misma vista pura.
+
+### 34.2 Archivos modificados
+
+| Archivo | Tipo | Contenido |
+|---|---|---|
+| `lib/dashboard-panel.ts` | Modificado | Selección de `respondidaEn` y `creadaEn` en `obtenerDetalleAsistencia`. |
+| `lib/asistencia-resumen.ts` | Modificado | `compararInvitaciones` ordena por `respondidaEn` asc. `ordenarInvitacionesSinResponder` ordena por `creadaEn` asc. |
+| `docs/REPORTE-AVANCE.md` | Modificado | Esta sección. |
+
+### 34.3 Verificación ejecutada
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npx next build` | OK |

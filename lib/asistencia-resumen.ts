@@ -26,12 +26,14 @@ export type AsistenciaPersona = {
 export type AsistenciaInvitacion = {
   id: string;
   titulo: string;
+  respondidaEn?: string | Date | null;
   personas: AsistenciaPersona[];
 };
 
 export type InvitacionSinResponder = {
   id: string;
   titulo: string;
+  creadaEn?: string | Date;
   totalPersonas: number;
 };
 
@@ -80,11 +82,16 @@ function compararPorTexto(a: string, b: string): number {
   return comparacion;
 }
 
-// Orden estable: criterio es-MX (sin tildes/mayúsculas) y desempate por id.
+// Orden estable: por fecha de confirmación (respondidaEn) ascendente,
+// luego por título (es-MX, sin tildes/mayúsculas) y desempate por id.
 function compararInvitaciones(
   a: AsistenciaInvitacion,
   b: AsistenciaInvitacion
 ): number {
+  const fechaA = a.respondidaEn ? new Date(a.respondidaEn).getTime() : 0;
+  const fechaB = b.respondidaEn ? new Date(b.respondidaEn).getTime() : 0;
+  if (fechaA !== fechaB) return fechaA - fechaB;
+
   const porTitulo = compararPorTexto(a.titulo, b.titulo);
   return porTitulo !== 0 ? porTitulo : a.id.localeCompare(b.id);
 }
@@ -241,12 +248,16 @@ export function construirDetalle(
   };
 }
 
-// Ordena las invitaciones sin responder alfabéticamente por título (es-MX,
-// sin tildes) con desempate estable por id. No fusiona títulos repetidos.
+// Ordena las invitaciones sin responder por fecha de creación (creadaEn)
+// ascendente, luego por título (es-MX, sin tildes) con desempate estable por id.
 export function ordenarInvitacionesSinResponder(
   invitaciones: InvitacionSinResponder[]
 ): InvitacionSinResponder[] {
   return [...invitaciones].sort((a, b) => {
+    const fechaA = a.creadaEn ? new Date(a.creadaEn).getTime() : 0;
+    const fechaB = b.creadaEn ? new Date(b.creadaEn).getTime() : 0;
+    if (fechaA !== fechaB) return fechaA - fechaB;
+
     const porTitulo = compararPorTexto(a.titulo, b.titulo);
     return porTitulo !== 0 ? porTitulo : a.id.localeCompare(b.id);
   });
