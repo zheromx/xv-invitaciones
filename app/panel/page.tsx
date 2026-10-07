@@ -4,6 +4,7 @@ import {
   Info,
   Mail,
   Plus,
+  UserCheck,
   UserX,
   Users,
 } from "lucide-react";
@@ -83,6 +84,7 @@ export default async function PaginaPanel() {
   const {
     eventoNombre,
     totalInvitaciones,
+    totalPersonas,
     respondidas,
     sinResponder,
     confirmadas,
@@ -92,6 +94,9 @@ export default async function PaginaPanel() {
 
   const pluralInvitacion = (n: number) =>
     n === 1 ? "1 invitación creada" : `${n} invitaciones creadas`;
+
+  const pluralPersona = (n: number) =>
+    n === 1 ? "1 persona invitada" : `${n} personas invitadas`;
 
   return (
     <div className="space-y-6">
@@ -144,7 +149,7 @@ export default async function PaginaPanel() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <TarjetaMetrica
           etiqueta="Invitaciones totales"
           valor={totalInvitaciones}
@@ -167,10 +172,17 @@ export default async function PaginaPanel() {
           chipClass="bg-amber-100 text-amber-700"
         />
         <TarjetaMetrica
+          etiqueta="Total de personas"
+          valor={totalPersonas}
+          detalle={pluralPersona(totalPersonas)}
+          icono={Users}
+          chipClass="bg-blue-100 text-blue-700"
+        />
+        <TarjetaMetrica
           etiqueta="Personas confirmadas"
           valor={confirmadas}
           detalle="asistencia confirmada"
-          icono={Users}
+          icono={UserCheck}
           chipClass="bg-eucalipto-100 text-eucalipto-700"
         />
         <TarjetaMetrica

@@ -1070,3 +1070,33 @@ Script temporal con `tsx`, eliminado después. **9/9 aprobadas:**
 **Prueba manual pendiente del dueño:** descargar y abrir el Excel con cada filtro (“Todas”, “Asistirán”, “No asistirán”) y con una búsqueda, y confirmar el deshabilitado con cero resultados y la alerta de error del endpoint. La aprobación visual móvil/escritorio de §31 también sigue pendiente. **No se declara aprobación manual por lint/build.**
 
 Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin seed, reset, db push, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
+
+---
+
+## 33. Tarjeta métrica de "Total de personas" en el Dashboard
+
+**Fecha:** 6 de octubre de 2026 · Añade la métrica global de personas registradas a las tarjetas métricas del panel principal (`/panel`).
+
+### 33.1 Alcance
+
+- Cálculo del `totalPersonas` sumando la totalidad de personas vinculadas a las invitaciones del evento (`porAsiste.reduce(...)`).
+- Inclusión de `totalPersonas` en `ResumenDashboard` y en `obtenerMetricasDeEvento` (`lib/dashboard-panel.ts`).
+- Nueva `<TarjetaMetrica>` en `app/panel/page.tsx` con etiqueta **"Total de personas"**, valor numérico, detalle pluralizado ("1 persona invitada" / "N personas invitadas") e ícono `Users`.
+- Ajuste de cuadrícula del dashboard (`xl:grid-cols-6`) para acomodar las 6 tarjetas en pantallas grandes.
+
+### 33.2 Archivos modificados
+
+| Archivo | Tipo | Contenido |
+|---|---|---|
+| `lib/dashboard-panel.ts` | Modificado | Tipo `ResumenDashboard` extendido con `totalPersonas: number` y cálculo en `obtenerMetricasDeEvento`. |
+| `app/panel/page.tsx` | Modificado | Tarjeta "Total de personas", pluralizador y ajuste de la cuadrícula a 6 columnas (`xl:grid-cols-6`). |
+| `docs/REPORTE-AVANCE.md` | Modificado | Esta sección. |
+
+### 33.3 Verificación ejecutada
+
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npx next build` | OK |

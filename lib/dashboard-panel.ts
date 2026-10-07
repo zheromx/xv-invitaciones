@@ -8,6 +8,7 @@ export type ResumenDashboard =
       eventoPresente: true;
       eventoNombre: string | null;
       totalInvitaciones: number;
+      totalPersonas: number;
       respondidas: number;
       sinResponder: number;
       confirmadas: number;
@@ -33,11 +34,16 @@ export async function obtenerMetricasDeEvento(eventoId: string) {
     (suma, grupo) => suma + grupo._count._all,
     0
   );
+  const totalPersonas = porAsiste.reduce(
+    (suma, grupo) => suma + grupo._count._all,
+    0
+  );
   const respondidas =
     porRespondida.find((grupo) => grupo.respondida)?._count._all ?? 0;
 
   return {
     totalInvitaciones,
+    totalPersonas,
     respondidas,
     sinResponder: totalInvitaciones - respondidas,
     confirmadas:
