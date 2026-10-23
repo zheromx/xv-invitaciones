@@ -54,6 +54,8 @@ export default async function PaginaInvitaciones() {
         invitaciones={filas}
         hayEvento={true}
         mensajeWhatsApp={evento.mensajeWhatsApp}
+        mensajeRecordatorioWhatsApp={evento.mensajeRecordatorioWhatsApp}
+        fechaLimiteRsvpIso={evento.fechaLimiteRsvp?.toISOString() ?? null}
       />
     );
   }
@@ -63,6 +65,8 @@ export default async function PaginaInvitaciones() {
       invitaciones={[]}
       hayEvento={false}
       mensajeWhatsApp={null}
+      mensajeRecordatorioWhatsApp={null}
+      fechaLimiteRsvpIso={null}
     />
   );
 }

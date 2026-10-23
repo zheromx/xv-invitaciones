@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BellRing,
   CheckCircle2,
   ChevronDown,
   Eye,
@@ -14,10 +15,14 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ConfirmacionBorrado } from "@/components/panel/confirmacion-borrado";
 import { formatearTelefono } from "@/lib/telefono";
-import { resolverMensajeWhatsApp } from "@/lib/whatsapp-mensaje";
+import {
+  recordatorioDisponible,
+  resolverMensajeRecordatorio,
+  resolverMensajeWhatsApp,
+} from "@/lib/whatsapp-mensaje";
 
 export type FilaInvitacion = {
   id: string;
@@ -41,15 +46,37 @@ export function ListaInvitaciones({
   invitaciones,
   hayEvento,
   mensajeWhatsApp,
+  mensajeRecordatorioWhatsApp,
+  fechaLimiteRsvpIso,
 }: {
   invitaciones: FilaInvitacion[];
   hayEvento: boolean;
   mensajeWhatsApp: string | null;
+  mensajeRecordatorioWhatsApp: string | null;
+  fechaLimiteRsvpIso: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [filtro, setFiltro] = useState<"todas" | "respondida" | "sin-responder">("todas");
   const [abiertaId, setAbiertaId] = useState<string | null>(null);
   const [toast, setToast] = useState(false);
+  // Hora actual para el umbral del recordatorio. Inicia en null (render SSR
+  // y primer render del cliente estables, sin mismatch) y se recalcula al
+  // montar y cada 60 s, siguiendo la convención de la cuenta regresiva.
+  const [ahora, setAhora] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const actualizar = () => setAhora(new Date());
+    actualizar();
+    const id = window.setInterval(actualizar, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const fechaLimite = fechaLimiteRsvpIso ? new Date(fechaLimiteRsvpIso) : null;
+
+  const puedeRecordatorio = (fila: FilaInvitacion): boolean => {
+    if (!ahora) return false;
+    return recordatorioDisponible(fila.respondida, fechaLimite, ahora);
+  };
 
   const mostrarToast = () => {
     setToast(true);
@@ -68,6 +95,18 @@ export function ListaInvitaciones({
     const texto = resolverMensajeWhatsApp(
       fila.titulo,
       mensajeWhatsApp,
+      fila.url
+    );
+    const destino = fila.telefono ?? "";
+    window.open(`https://wa.me/${destino}?text=${encodeURIComponent(texto)}`, "_blank");
+  };
+
+  // Solo abre wa.me con el texto de recordatorio. No escribe datos ni marca
+  // la invitación como recordada (sin contador, historial ni estado).
+  const enviarRecordatorio = (fila: FilaInvitacion) => {
+    const texto = resolverMensajeRecordatorio(
+      fila.titulo,
+      mensajeRecordatorioWhatsApp,
       fila.url
     );
     const destino = fila.telefono ?? "";
@@ -289,6 +328,17 @@ export function ListaInvitaciones({
                           >
                             <MessageCircleMore className="h-4 w-4" />
                           </button>
+                          {puedeRecordatorio(fila) && (
+                            <button
+                              type="button"
+                              title="Enviar recordatorio"
+                              aria-label={`Enviar recordatorio: ${fila.titulo}`}
+                              onClick={() => enviarRecordatorio(fila)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
+                            >
+                              <BellRing className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
                             type="button"
                             title="Copiar enlace"
@@ -419,6 +469,17 @@ export function ListaInvitaciones({
                       >
                         <MessageCircleMore className="h-5 w-5" />
                       </button>
+                      {puedeRecordatorio(fila) && (
+                        <button
+                          type="button"
+                          onClick={() => enviarRecordatorio(fila)}
+                          title={`Enviar recordatorio: ${fila.titulo}`}
+                          aria-label={`Enviar recordatorio: ${fila.titulo}`}
+                          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-300 text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2"
+                        >
+                          <BellRing className="h-5 w-5" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => copiarEnlace(fila)}

@@ -60,13 +60,14 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Diseño responsivo, optimizado para celulares y conexiones débiles
 - Teléfono de contacto opcional por invitación (privado del panel; solo dirige el enlace de WhatsApp)
 - Mensaje de WhatsApp configurable por evento (privado del panel; marcador opcional `{titulo}`; el enlace de cada invitación se agrega automáticamente al final, con fallback al mensaje fijo)
+- Recordatorio manual por WhatsApp por invitación (botón condicional en el listado: solo sin responder y a partir de dos días antes de la fecha límite; mensaje de recordatorio configurable por evento e independiente del mensaje inicial; sin envío automático)
 - Importación de invitaciones desde Excel (`.xlsx`) con plantilla, análisis/previsualización, errores por fila y confirmación explícita (solo altas)
 
 ### Fuera de esta versión
 
 - Vencimiento automático o eliminación automática de invitaciones sin respuesta (se maneja manualmente por ahora)
 - Envío automático o masivo por WhatsApp (API de Meta)
-- Recordatorios automáticos programados
+- Recordatorios automáticos o masivos por WhatsApp (el recordatorio de esta versión es manual: un botón que abre `wa.me`; no hay cron, API de Meta, historial ni contadores)
 - Pases de acceso con código QR
 - Acomodo de mesas
 - Editor visual de plantillas (constructor drag-and-drop)

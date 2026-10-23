@@ -1,6 +1,6 @@
 # Reporte de avance — Plataforma de Invitaciones Digitales XV Años
 
-**Fecha:** 3 de octubre de 2026 · **Último commit:** `9ebb884` — `feat: listado de invitaciones en tarjetas para movil sin scroll horizontal` · **Working tree:** limpio al cerrar este entregable
+**Fecha:** 23 de octubre de 2026 · **Último commit previo:** `a77cfc7` — `feat: ordenamiento de detalle de asistencia (respondidas por confirmacion asc, pendientes por creacion asc)` · **Este entregable (§35):** recordatorio manual por WhatsApp, commiteado junto con esta actualización del reporte
 
 ---
 
@@ -1129,3 +1129,55 @@ Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin se
 | `npm run lint` | 0 |
 | `npx tsc --noEmit` | 0 |
 | `npx next build` | OK |
+
+---
+
+## 35. Recordatorio manual por WhatsApp
+
+**Fecha:** 23 de octubre de 2026 · Botón **"Enviar recordatorio"** en el listado de invitaciones, con mensaje de recordatorio configurable por evento e **independiente** del mensaje de invitación inicial. Manual: solo abre `wa.me`; **sin** envío automático, cron, API de Meta, historial ni contadores. *(Trabajo del working tree, sin commit.)*
+
+### 35.1 Datos y columna (aplicada por el dueño)
+
+- **Campo:** `Evento.mensajeRecordatorioWhatsApp String?` (TEXT NULL), agregado a `prisma/schema.prisma`. Aditivo y nullable; sin backfill (los eventos previos quedan en `NULL` y usan el fallback).
+- **Columna creada manualmente por el dueño en Supabase** con el `ALTER TABLE "Evento" ADD COLUMN "mensajeRecordatorioWhatsApp" TEXT;` entregado como texto en la fase de plan; verificada antes de implementar. No se creó archivo de migración ni se ejecutó `migrate`/`db push`/`seed`/`reset`. Prisma Client regenerado (`v6.19.3`) tras confirmar la columna.
+
+### 35.2 Mensaje de recordatorio (helper puro)
+
+- En `lib/whatsapp-mensaje.ts`, junto al mensaje de invitación **sin modificarlo**:
+  - `MENSAJE_RECORDATORIO_FALLBACK = "¡Hola {titulo}! Les recordamos que aún pueden confirmar su asistencia a mis XV años. Si aún no lo hacen, pueden hacerlo aquí:"`.
+  - `resolverMensajeRecordatorio(titulo, mensaje, url)`: mismo contrato que `resolverMensajeWhatsApp` — vacío/`NULL` → fallback; `{titulo}` sustituido de forma literal (todas las apariciones, `split/join`, sin interpretar `$`); la URL individual se anexa **una sola vez al final** con `\n\n`.
+  - `validarMensajeWhatsAppEntrante` se **reutiliza sin cambios** para la nueva acción (trim, vacío→`null`, ≤1000, no-string → inválido).
+- **Privacidad:** el campo no se añadió a `lib/invitacion.ts`, `lib/evento.ts`, plantillas, `/invitacion/**`, `components/invitacion/**` ni el mock. Verificado con búsqueda: 0 coincidencias fuera de contratos del panel.
+
+### 35.3 Guardado independiente
+
+- `lib/whatsapp-nucleo.ts`: `ejecutarGuardarMensajeRecordatorioWhatsApp(usuarioId, mensaje)` actualiza **exclusivamente** `Evento.mensajeRecordatorioWhatsApp` del evento derivado de `session.user.id → Evento.usuarioId` (nunca del request). No extiende `ejecutarActualizarEvento` ni `ejecutarGuardarMensajeWhatsApp`.
+- `lib/acciones-whatsapp.ts`: Server Action fina `guardarMensajeRecordatorioWhatsApp` (auth → `validarMensajeWhatsAppEntrante` → núcleo → `revalidatePath("/panel/configuracion")` y `/panel/invitaciones`).
+- **Panel:** bloque **"11. Mensaje de recordatorio por WhatsApp"** (`components/panel/whatsapp-recordatorio.tsx`), patrón del bloque 10 (textarea, contador x/1000, explicación de `{titulo}`, aviso de URL automática y previsualización de ejemplo con título/URL ficticios, sin botón `wa.me`), montado en `app/panel/configuracion/page.tsx` con `inicial` desde `obtenerEventoConfiguracionSesion` (select ampliado en `lib/evento-panel.ts`).
+
+### 35.4 Política de fechas y botón en el listado
+
+- **Captura/almacenamiento de `fechaLimiteRsvp` (sin cambios):** `<input type="date">` → servidor parsea `"YYYY-MM-DDT00:00:00"` (hora local del servidor; en Vercel = UTC) → `TIMESTAMP(3)`. El panel ya mostraba el día con getters **locales del navegador** (`aFechaDia`).
+- **Umbral (helper puro, mismo archivo):** `umbralRecordatorio(fechaLimite)` = **medianoche local (zona del navegador del organizador) del día calendario de la fecha límite menos dos días**; `recordatorioDisponible(respondida, fechaLimite, ahora)` exige `respondida === false`, fecha definida y `ahora >= umbral` (comparación de instantes, sin `Math.floor` de días ni redondeos que adelanten el botón; no depende de la zona de Vercel).
+- **Ejemplo** (límite = 1 de noviembre): umbral = 00:00:00 local del **30 de octubre**. 29 oct → oculto; **30 oct desde 00:00:00 → visible**; 31 oct y 1 nov → visible; 2 nov en adelante sin respuesta → sigue visible (disponible tras vencer el plazo); respondida en cualquier fecha → oculto; sin `fechaLimiteRsvp` → oculto siempre.
+- **Listado (`components/panel/lista-invitaciones.tsx`):** nuevas props `mensajeRecordatorioWhatsApp` y `fechaLimiteRsvpIso` (pasadas desde `app/panel/invitaciones/page.tsx`; select ampliado en `lib/invitaciones-panel.ts`). Botón **"Enviar recordatorio"** (icono `BellRing`, `aria-label`/`title` "Enviar recordatorio: {titulo}") en el grupo de acciones de **escritorio** (`h-8 w-8`) y de **móvil** (`h-11 w-11`), con la **misma condición** en ambas presentaciones. Clic → `window.open("https://wa.me/" + (telefono ?? "") + "?text=" + encodeURIComponent(resolverMensajeRecordatorio(...)))`: reutiliza teléfono, destino vacío y construcción `wa.me` actuales; sin teléfono se abre sin destinatario.
+- **Sin escrituras:** abrir WhatsApp **no** marca `enviadaEn`, no registra envío, no hay contador ni historial. RSVP, CAS, tokens, personas, fecha límite y sus garantías **intactos**.
+- **Pantalla abierta que cruza el umbral:** `ahora` inicia en `null` (SSR y primer render estables, sin mismatch de hidratación — misma convención que la cuenta regresiva) y se recalcula al montar y cada **60 s** con `setInterval` (limpio al desmontar). **Respondida desde otra pestaña:** la disponibilidad es función pura de las props del render (`force-dynamic`); el CRUD/importación ya revalidan `/panel/invitaciones` y el RSVP revalida solo `/invitacion/…`. Sin polling de BD, websockets ni infraestructura nueva: si una pestaña abierta queda desfasada, el clic solo abre `wa.me` (sin escritura) y el siguiente refresh/navegación sincroniza.
+
+### 35.5 Verificación ejecutada (resultados reales)
+
+| Verificación | Resultado |
+|---|---|
+| Pruebas puras del helper (script `tsx` temporal, eliminado): umbral 1 nov → 30 oct; 29 oct 12:00 y 29 oct 23:59:59.999 oculto; umbral exacto 30 oct 00:00:00.000 visible; 30 oct/31 oct/1 nov visible; 2 nov vencida visible; respondida pre/post-umbral oculto; sin fecha oculto; límite 23:59 (semántica seed) → umbral 29 oct; fallback/`{titulo}`×2/URL una sola vez al final/`$` sin interpretar; validar vacío/1000/1001/no-string/saltos | **24/24 PASS** |
+| `git diff --check` | 0 (solo avisos LF→CRLF de autocrlf) |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK (Prisma Client regenerado; rutas del panel dinámicas; proxy activo) |
+| Estática: mutación acotada (`data: { mensajeRecordatorioWhatsApp }`), acción/auth derivadas de la sesión | Confirmado |
+| Búsqueda de privacidad: `mensajeRecordatorioWhatsApp` ausente en contratos públicos (plantillas, `/invitacion/**`, `lib/invitacion.ts`, `lib/evento.ts`, mock) | Confirmado (0 coincidencias) |
+
+### 35.6 Documentación y estado
+
+- Actualizados `AGENTS.md` (regla de negocio del recordatorio manual) y `ALCANCE.md` (incluido; los recordatorios **automáticos** siguen fuera de alcance).
+- **Sin cambios** en RSVP, tokens, teléfono, Excel, plantillas, metadata, UploadThing ni `fechaLimiteRsvp`. Sin seed, reset, db push, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
+- **Prueba manual del dueño: APROBADA** ("lista la prueba todo bien") sobre el panel con datos reales. **Registro del commit:** `feat: recordatorio manual por WhatsApp con mensaje configurable y boton condicional a fecha limite` (este entregable, commiteado junto con esta actualización del reporte; sin push ni deploy).

@@ -79,6 +79,9 @@ model Evento {
   // Mensaje privado del panel para compartir por WhatsApp (no público).
   mensajeWhatsApp   String?
 
+  // Mensaje privado del panel para el recordatorio manual por WhatsApp.
+  mensajeRecordatorioWhatsApp String?
+
   fotoPrincipalUrl  String?      // foto de portada de la invitación
   musicaUrl         String?      // pista MP3 de fondo (opcional)
 

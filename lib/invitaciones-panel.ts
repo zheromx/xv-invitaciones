@@ -4,12 +4,19 @@ import { prisma } from "./prisma";
 export async function obtenerEventoSegunSesion(): Promise<{
   id: string;
   mensajeWhatsApp: string | null;
+  mensajeRecordatorioWhatsApp: string | null;
+  fechaLimiteRsvp: Date | null;
 } | null> {
   const sesion = await auth();
   if (!sesion?.user) return null;
   return prisma.evento.findFirst({
     where: { usuarioId: sesion.user.id },
-    select: { id: true, mensajeWhatsApp: true },
+    select: {
+      id: true,
+      mensajeWhatsApp: true,
+      mensajeRecordatorioWhatsApp: true,
+      fechaLimiteRsvp: true,
+    },
   });
 }
 

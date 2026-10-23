@@ -33,3 +33,41 @@ export function resolverMensajeWhatsApp(
   const conTitulo = cuerpo.split("{titulo}").join(titulo);
   return `${conTitulo}\n\n${url}`;
 }
+
+// Cuerpo del mensaje fijo de recordatorio manual. Mismo marcador {titulo} y
+// misma composición (URL una sola vez al final) que el mensaje de invitación.
+export const MENSAJE_RECORDATORIO_FALLBACK =
+  "¡Hola {titulo}! Les recordamos que aún pueden confirmar su asistencia a mis XV años. Si aún no lo hacen, pueden hacerlo aquí:";
+
+export function resolverMensajeRecordatorio(
+  titulo: string,
+  mensaje: string | null | undefined,
+  url: string
+): string {
+  const personalizado = mensaje?.trim();
+  const cuerpo = personalizado ? personalizado : MENSAJE_RECORDATORIO_FALLBACK;
+  const conTitulo = cuerpo.split("{titulo}").join(titulo);
+  return `${conTitulo}\n\n${url}`;
+}
+
+// Instante en el que el botón "Enviar recordatorio" puede aparecer: medianoche
+// local (zona del navegador del organizador) del día calendario de la fecha
+// límite menos dos días. Sin redondeos de horas ni zona del servidor.
+export function umbralRecordatorio(fechaLimite: Date): Date {
+  return new Date(
+    fechaLimite.getFullYear(),
+    fechaLimite.getMonth(),
+    fechaLimite.getDate() - 2
+  );
+}
+
+// Disponibilidad pura del botón: solo para invitaciones sin responder, con
+// fecha límite definida y a partir del umbral (permanece tras vencer el plazo).
+export function recordatorioDisponible(
+  respondida: boolean,
+  fechaLimite: Date | null,
+  ahora: Date = new Date()
+): boolean {
+  if (respondida || !fechaLimite) return false;
+  return ahora.getTime() >= umbralRecordatorio(fechaLimite).getTime();
+}
