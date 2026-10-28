@@ -21,6 +21,7 @@ export type AsistenciaPersona = {
   id: string;
   nombre: string;
   asiste: boolean | null;
+  mesa: number | null;
 };
 
 export type AsistenciaInvitacion = {
@@ -41,6 +42,7 @@ export type IntegranteResumen = {
   id: string;
   nombre: string;
   asiste: boolean | null;
+  mesa: number | null;
 };
 
 export type GrupoResumen = {
@@ -203,6 +205,7 @@ export function construirDetalle(
         id: persona.id,
         nombre: persona.nombre,
         asiste: persona.asiste,
+        mesa: persona.mesa,
       }));
 
     // En "todas" el grupo siempre es visible; en los filtros de asistencia

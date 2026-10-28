@@ -14,6 +14,7 @@ import {
   Plus,
   Search,
   Trash2,
+  UtensilsCrossed,
 } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { ConfirmacionBorrado } from "@/components/panel/confirmacion-borrado";
@@ -23,15 +24,18 @@ import {
   resolverMensajeRecordatorio,
   resolverMensajeWhatsApp,
 } from "@/lib/whatsapp-mensaje";
+import { resolverMensajeMesaWhatsApp } from "@/lib/mesas-validacion";
 
 export type FilaInvitacion = {
   id: string;
   titulo: string;
   telefono: string | null;
   url: string;
+  urlMesas: string;
   respondida: boolean;
   totalPersonas: number;
   confirmadas: number;
+  asistentesSinMesa: number;
   integrantes: string;
   respondidaEn: string | null;
 };
@@ -47,12 +51,14 @@ export function ListaInvitaciones({
   hayEvento,
   mensajeWhatsApp,
   mensajeRecordatorioWhatsApp,
+  mensajeMesaWhatsApp,
   fechaLimiteRsvpIso,
 }: {
   invitaciones: FilaInvitacion[];
   hayEvento: boolean;
   mensajeWhatsApp: string | null;
   mensajeRecordatorioWhatsApp: string | null;
+  mensajeMesaWhatsApp: string | null;
   fechaLimiteRsvpIso: string | null;
 }) {
   const [query, setQuery] = useState("");
@@ -108,6 +114,16 @@ export function ListaInvitaciones({
       fila.titulo,
       mensajeRecordatorioWhatsApp,
       fila.url
+    );
+    const destino = fila.telefono ?? "";
+    window.open(`https://wa.me/${destino}?text=${encodeURIComponent(texto)}`, "_blank");
+  };
+
+  const notificarMesas = (fila: FilaInvitacion) => {
+    const texto = resolverMensajeMesaWhatsApp(
+      fila.titulo,
+      mensajeMesaWhatsApp,
+      fila.urlMesas
     );
     const destino = fila.telefono ?? "";
     window.open(`https://wa.me/${destino}?text=${encodeURIComponent(texto)}`, "_blank");
@@ -319,15 +335,35 @@ export function ListaInvitaciones({
                           >
                             <Eye className="h-4 w-4" />
                           </a>
-                          <button
-                            type="button"
-                            title="Compartir por WhatsApp"
-                            aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
-                            onClick={() => compartirWhatsApp(fila)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
-                          >
-                            <MessageCircleMore className="h-4 w-4" />
-                          </button>
+                           <button
+                             type="button"
+                             title="Compartir por WhatsApp"
+                             aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
+                             onClick={() => compartirWhatsApp(fila)}
+                             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700"
+                           >
+                             <MessageCircleMore className="h-4 w-4" />
+                           </button>
+                           {fila.respondida && fila.confirmadas > 0 && (
+                             <button
+                               type="button"
+                               title={
+                                 fila.asistentesSinMesa === 0
+                                   ? "Notificar mesas por WhatsApp"
+                                   : `Faltan ${fila.asistentesSinMesa} ${fila.asistentesSinMesa === 1 ? "mesa" : "mesas"} por asignar`
+                               }
+                               aria-label={`Notificar mesas: ${fila.titulo}`}
+                               disabled={fila.asistentesSinMesa > 0}
+                               onClick={() => notificarMesas(fila)}
+                               className={`flex h-8 w-8 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 ${
+                                 fila.asistentesSinMesa === 0
+                                   ? "text-eucalipto-700 hover:bg-eucalipto-50 hover:text-eucalipto-800"
+                                   : "text-zinc-300 cursor-not-allowed opacity-60"
+                               }`}
+                             >
+                               <UtensilsCrossed className="h-4 w-4" />
+                             </button>
+                           )}
                           {puedeRecordatorio(fila) && (
                             <button
                               type="button"
@@ -460,15 +496,35 @@ export function ListaInvitaciones({
                     )}
 
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => compartirWhatsApp(fila)}
-                        title={`Compartir por WhatsApp: ${fila.titulo}`}
-                        aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-eucalipto-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
-                      >
-                        <MessageCircleMore className="h-5 w-5" />
-                      </button>
+                       <button
+                         type="button"
+                         onClick={() => compartirWhatsApp(fila)}
+                         title={`Compartir por WhatsApp: ${fila.titulo}`}
+                         aria-label={`Compartir por WhatsApp: ${fila.titulo}`}
+                         className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-eucalipto-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2"
+                       >
+                         <MessageCircleMore className="h-5 w-5" />
+                       </button>
+                       {fila.respondida && fila.confirmadas > 0 && (
+                         <button
+                           type="button"
+                           title={
+                             fila.asistentesSinMesa === 0
+                               ? "Notificar mesas por WhatsApp"
+                               : `Faltan ${fila.asistentesSinMesa} ${fila.asistentesSinMesa === 1 ? "mesa" : "mesas"} por asignar`
+                           }
+                           aria-label={`Notificar mesas: ${fila.titulo}`}
+                           disabled={fila.asistentesSinMesa > 0}
+                           onClick={() => notificarMesas(fila)}
+                           className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2 ${
+                             fila.asistentesSinMesa === 0
+                               ? "border-eucalipto-300 bg-eucalipto-50 text-eucalipto-800 hover:bg-eucalipto-100"
+                               : "border-zinc-200 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-60"
+                           }`}
+                         >
+                           <UtensilsCrossed className="h-5 w-5" />
+                         </button>
+                       )}
                       {puedeRecordatorio(fila) && (
                         <button
                           type="button"

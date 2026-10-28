@@ -5,6 +5,7 @@ export async function obtenerEventoSegunSesion(): Promise<{
   id: string;
   mensajeWhatsApp: string | null;
   mensajeRecordatorioWhatsApp: string | null;
+  mensajeMesaWhatsApp: string | null;
   fechaLimiteRsvp: Date | null;
 } | null> {
   const sesion = await auth();
@@ -15,6 +16,7 @@ export async function obtenerEventoSegunSesion(): Promise<{
       id: true,
       mensajeWhatsApp: true,
       mensajeRecordatorioWhatsApp: true,
+      mensajeMesaWhatsApp: true,
       fechaLimiteRsvp: true,
     },
   });

@@ -24,7 +24,7 @@ export default async function PaginaInvitaciones() {
         token: true,
         respondida: true,
         respondidaEn: true,
-        personas: { select: { id: true, nombre: true, asiste: true }, orderBy: { id: "asc" } },
+        personas: { select: { id: true, nombre: true, asiste: true, mesa: true }, orderBy: { id: "asc" } },
       },
       orderBy: [{ creadaEn: "asc" },
                 { titulo: "asc" }],
@@ -32,15 +32,20 @@ export default async function PaginaInvitaciones() {
 
     const filas: FilaInvitacion[] = await Promise.all(
       registros.map(async (registro) => {
-        const confirmadas = registro.personas.filter((p) => p.asiste === true).length;
+        const confirmados = registro.personas.filter((p) => p.asiste === true);
+        const confirmadas = confirmados.length;
+        const asistentesSinMesa = confirmados.filter((p) => p.mesa === null).length;
+        const urlBase = await urlPublicaInvitacion(registro.token);
         return {
           id: registro.id,
           titulo: registro.titulo,
           telefono: registro.telefono,
-          url: await urlPublicaInvitacion(registro.token),
+          url: urlBase,
+          urlMesas: `${urlBase}/mesas`,
           respondida: registro.respondida,
           totalPersonas: registro.personas.length,
           confirmadas,
+          asistentesSinMesa,
           integrantes: registro.personas.map((p) => p.nombre).join(", "),
           respondidaEn: registro.respondidaEn
             ? formatearFecha.format(registro.respondidaEn)
@@ -55,6 +60,7 @@ export default async function PaginaInvitaciones() {
         hayEvento={true}
         mensajeWhatsApp={evento.mensajeWhatsApp}
         mensajeRecordatorioWhatsApp={evento.mensajeRecordatorioWhatsApp}
+        mensajeMesaWhatsApp={evento.mensajeMesaWhatsApp}
         fechaLimiteRsvpIso={evento.fechaLimiteRsvp?.toISOString() ?? null}
       />
     );
@@ -66,6 +72,7 @@ export default async function PaginaInvitaciones() {
       hayEvento={false}
       mensajeWhatsApp={null}
       mensajeRecordatorioWhatsApp={null}
+      mensajeMesaWhatsApp={null}
       fechaLimiteRsvpIso={null}
     />
   );

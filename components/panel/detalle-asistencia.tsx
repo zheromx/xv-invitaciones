@@ -11,6 +11,7 @@ import {
   type FiltroAsistencia,
   type InvitacionSinResponder,
 } from "@/lib/asistencia-resumen";
+import { guardarMesaPersonaAction } from "@/lib/acciones-mesas";
 
 type OpcionFiltro = {
   valor: FiltroAsistencia;
@@ -51,6 +52,63 @@ function nombreDesdeCabecera(cabecera: string | null): string | null {
   if (!cabecera) return null;
   const coincidencia = /filename="([^"]+)"/.exec(cabecera);
   return coincidencia?.[1] ?? null;
+}
+
+function InputMesa({
+  personaId,
+  mesaInicial,
+}: {
+  personaId: string;
+  mesaInicial: number | null;
+}) {
+  const [valor, setValor] = useState(
+    mesaInicial !== null ? String(mesaInicial) : ""
+  );
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState(false);
+
+  const guardar = async (nuevoValor: string) => {
+    setGuardando(true);
+    setError(false);
+    try {
+      const res = await guardarMesaPersonaAction(personaId, nuevoValor);
+      if (!res.ok) {
+        setError(true);
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <label htmlFor={`mesa-${personaId}`} className="sr-only">
+        Número de mesa
+      </label>
+      <input
+        id={`mesa-${personaId}`}
+        type="number"
+        min="1"
+        max="2147483647"
+        value={valor}
+        placeholder="Mesa"
+        onChange={(e) => setValor(e.target.value)}
+        onBlur={() => guardar(valor)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.currentTarget.blur();
+          }
+        }}
+        disabled={guardando}
+        className={`h-7 w-16 rounded-md border px-2 text-xs text-zinc-800 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-eucalipto-700 ${
+          error ? "border-rose-300 bg-rose-50" : "border-zinc-300 bg-white"
+        }`}
+      />
+      {guardando && <span className="text-[10px] text-zinc-400">…</span>}
+    </div>
+  );
 }
 
 export function DetalleAsistencia({
@@ -278,17 +336,25 @@ export function DetalleAsistencia({
                             <span className="min-w-0 break-words text-sm text-zinc-700">
                               {integrante.nombre}
                             </span>
-                            <span
-                              className={
-                                integrante.asiste === true
-                                  ? "shrink-0 text-xs font-medium text-eucalipto-700"
-                                  : integrante.asiste === false
-                                    ? "shrink-0 text-xs font-medium text-rose-600"
-                                    : "shrink-0 text-xs font-medium text-amber-700"
-                              }
-                            >
-                              {etiquetaAsiste(integrante.asiste)}
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {integrante.asiste === true && (
+                                <InputMesa
+                                  personaId={integrante.id}
+                                  mesaInicial={integrante.mesa}
+                                />
+                              )}
+                              <span
+                                className={
+                                  integrante.asiste === true
+                                    ? "text-xs font-medium text-eucalipto-700"
+                                    : integrante.asiste === false
+                                      ? "text-xs font-medium text-rose-600"
+                                      : "text-xs font-medium text-amber-700"
+                                }
+                              >
+                                {etiquetaAsiste(integrante.asiste)}
+                              </span>
+                            </div>
                           </li>
                         ))}
                       </ul>

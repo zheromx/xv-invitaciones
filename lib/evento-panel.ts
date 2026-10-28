@@ -35,6 +35,7 @@ export async function obtenerEventoConfiguracionSesion() {
       infoAdicional: true,
       mensajeWhatsApp: true,
       mensajeRecordatorioWhatsApp: true,
+      mensajeMesaWhatsApp: true,
       musicaUrl: true,
       cronograma: {
         orderBy: { orden: "asc" },

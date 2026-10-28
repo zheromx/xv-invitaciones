@@ -13,6 +13,7 @@ import { BloqueRegalos } from "@/components/panel/regalos-evento";
 import { BloqueMusica } from "@/components/panel/musica-evento";
 import { BloqueWhatsApp } from "@/components/panel/whatsapp-evento";
 import { BloqueWhatsAppRecordatorio } from "@/components/panel/whatsapp-recordatorio";
+import { BloqueWhatsAppMesas } from "@/components/panel/whatsapp-mesas";
 
 export const dynamic = "force-dynamic";
 
@@ -146,6 +147,7 @@ export default async function PaginaConfiguracionEvento() {
       <BloqueWhatsAppRecordatorio
         inicial={evento.mensajeRecordatorioWhatsApp ?? ""}
       />
+      <BloqueWhatsAppMesas inicial={evento.mensajeMesaWhatsApp ?? ""} />
     </div>
   );
 }

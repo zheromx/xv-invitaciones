@@ -62,6 +62,7 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Mensaje de WhatsApp configurable por evento (privado del panel; marcador opcional `{titulo}`; el enlace de cada invitación se agrega automáticamente al final, con fallback al mensaje fijo)
 - Recordatorio manual por WhatsApp por invitación (botón condicional en el listado: solo sin responder y a partir de dos días antes de la fecha límite; mensaje de recordatorio configurable por evento e independiente del mensaje inicial; sin envío automático)
 - Importación de invitaciones desde Excel (`.xlsx`) con plantilla, análisis/previsualización, errores por fila y confirmación explícita (solo altas)
+- Asignación opcional de número de mesa por persona (entero positivo o null) con captura administrativa desde el detalle de asistencia, consulta pública ligera por token en `/invitacion/[token]/mesas`, mensaje configurable de notificación y botón "Notificar mesas" manual por WhatsApp en el listado (sin croquis ni asignación automática)
 
 ### Fuera de esta versión
 
@@ -69,7 +70,7 @@ El evento en sí (una plantilla, elegida entre al menos 4 disponibles) incluye: 
 - Envío automático o masivo por WhatsApp (API de Meta)
 - Recordatorios automáticos o masivos por WhatsApp (el recordatorio de esta versión es manual: un botón que abre `wa.me`; no hay cron, API de Meta, historial ni contadores)
 - Pases de acceso con código QR
-- Acomodo de mesas
+- Acomodo complejo de mesas, croquis de salón o capacidades automáticas (solo se incluye captura manual de número de mesa por persona, consulta por token y notificación manual)
 - Editor visual de plantillas (constructor drag-and-drop)
 - Registro de padrinos por rubro con seguimiento de aportaciones
 - Libro de deseos

@@ -82,6 +82,9 @@ model Evento {
   // Mensaje privado del panel para el recordatorio manual por WhatsApp.
   mensajeRecordatorioWhatsApp String?
 
+  // Mensaje privado del panel para notificar número de mesa por WhatsApp.
+  mensajeMesaWhatsApp String?
+
   fotoPrincipalUrl  String?      // foto de portada de la invitación
   musicaUrl         String?      // pista MP3 de fondo (opcional)
 
@@ -183,6 +186,7 @@ model Persona {
   // null = invitación aún no respondida.
   // true/false = fijado permanentemente al momento del RSVP.
   asiste        Boolean?
+  mesa          Int?
 
   @@index([invitacionId])
 }

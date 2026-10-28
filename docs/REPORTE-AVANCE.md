@@ -1181,3 +1181,31 @@ Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin se
 - Actualizados `AGENTS.md` (regla de negocio del recordatorio manual) y `ALCANCE.md` (incluido; los recordatorios **automáticos** siguen fuera de alcance).
 - **Sin cambios** en RSVP, tokens, teléfono, Excel, plantillas, metadata, UploadThing ni `fechaLimiteRsvp`. Sin seed, reset, db push, commit, push ni deploy. `PLANTILLAS.md` sin cambios.
 - **Prueba manual del dueño: APROBADA** ("lista la prueba todo bien") sobre el panel con datos reales. **Registro del commit:** `feat: recordatorio manual por WhatsApp con mensaje configurable y boton condicional a fecha limite` (este entregable, commiteado junto con esta actualización del reporte; sin push ni deploy).
+
+---
+
+## 36. Asignación de número de mesa por persona y notificación manual
+
+**Fecha:** Octubre de 2026 · Asignación de número de mesa por persona, consulta pública ligera por token y notificación manual por WhatsApp.
+
+### 36.1 Datos, esquema y restricciones (aplicadas por el dueño en Supabase)
+- **Campos añadidos:** `Persona.mesa INT NULL` y `Evento.mensajeMesaWhatsApp TEXT NULL`.
+- **Restricción CHECK:** `Persona_mesa_check` → `((mesa IS NULL) OR (mesa > 0))`, aplicada aditivamente en Supabase junto con las columnas.
+- **Prisma Client:** Regenerado (`v6.19.3`) tras verificar las columnas y restricciones por solo lectura. Sin migraciones destructivas ni seed ejecutados.
+
+### 36.2 Captura y corrección administrativa (Panel)
+- **`lib/mesas-validacion.ts` & `lib/mesas-nucleo.ts` & `lib/acciones-mesas.ts`:** Validación estricta (`1` a `2147483647` o `null`); mutación transaccional acotada exclusivamente a `Persona.mesa`, validando que la persona pertenezca al evento de la sesión (`Usuario.id → Evento.usuarioId`), que la invitación esté respondida (`respondida === true`) y que tenga asistencia confirmada (`asiste === true`).
+- **`components/panel/detalle-asistencia.tsx`:** Control de captura/corrección de mesa inline para cada asistente con `asiste === true`, de forma independiente del CRUD bloqueado por RSVP. Preserva nombres, asistencia, respondida y tokens.
+
+### 36.3 Consulta pública ligera de mesas
+- **Ruta:** `app/invitacion/[token]/mesas/page.tsx` (`force-dynamic`).
+- **Comportamiento:** Lee por token el grupo y sus asistentes; muestra un aviso si la invitación no ha sido respondida o si todos declinaron; lista únicamente los asistentes con su número de mesa asignada (ej. *"Mesa 3"*) o *"Mesa por asignar"*. No expone teléfonos ni datos administrativos.
+
+### 36.4 Notificación manual por WhatsApp
+- **Mensaje configurable:** `Evento.mensajeMesaWhatsApp` gestionado desde el panel mediante el bloque *"12. Mensaje de notificación de mesas por WhatsApp"* (`components/panel/whatsapp-mesas.tsx`), con fallback, límite de 1000 caracteres, sustitución literal de `{titulo}` y anexado automático de la URL absoluta de consulta de mesas (`/mesas`) una sola vez al final.
+- **Botón "Notificar mesas":** En el listado de invitaciones (`components/panel/lista-invitaciones.tsx`, tanto en escritorio como en móvil), aparece para invitaciones respondidas con asistentes y se habilita únicamente cuando **todos** sus asistentes tienen mesa asignada. Reutiliza `wa.me` manual sin registrar historial ni estado de envío.
+
+### 36.5 Verificación ejecutada
+- **Pruebas puras en memoria:** `lib/mesas-test.ts` ejecutado con éxito (validación de enteros positivos, nulos, límites, fallback, `{titulo}` y anexado de URL).
+- **Verificaciones del sistema:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` completados sin errores.
+

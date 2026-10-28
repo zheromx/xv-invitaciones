@@ -78,7 +78,7 @@ export type DetalleAsistenciaDatos = {
     id: string;
     titulo: string;
     respondidaEn: string | null;
-    personas: { id: string; nombre: string; asiste: boolean | null }[];
+    personas: { id: string; nombre: string; asiste: boolean | null; mesa: number | null }[];
   }[];
   invitacionesSinResponder: {
     id: string;
@@ -112,7 +112,7 @@ export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashb
           respondidaEn: true,
           creadaEn: true,
           personas: {
-            select: { id: true, nombre: true, asiste: true },
+            select: { id: true, nombre: true, asiste: true, mesa: true },
           },
         },
       },
@@ -135,6 +135,7 @@ export async function obtenerDetalleAsistencia(): Promise<DetalleAsistenciaDashb
           id: persona.id,
           nombre: persona.nombre,
           asiste: persona.asiste,
+          mesa: persona.mesa,
         })),
       });
     } else {
