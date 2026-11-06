@@ -99,8 +99,8 @@ export default async function PaginaPanel() {
     n === 1 ? "1 persona invitada" : `${n} personas invitadas`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-6 print:space-y-0">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between print:hidden">
         <div>
           <h1 className="font-serif text-2xl text-eucalipto-700">Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-500">
@@ -132,7 +132,7 @@ export default async function PaginaPanel() {
       </div>
 
       {totalInvitaciones === 0 && (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-6 text-center">
+        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-6 text-center print:hidden">
           <p className="text-sm font-medium text-zinc-700">
             Todavía no hay invitaciones.
           </p>
@@ -149,7 +149,7 @@ export default async function PaginaPanel() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 print:hidden">
         <TarjetaMetrica
           etiqueta="Invitaciones totales"
           valor={totalInvitaciones}
@@ -195,7 +195,7 @@ export default async function PaginaPanel() {
       </div>
 
       {enInvitacionesSinResponder > 0 && (
-        <div className="flex items-start gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+        <div className="flex items-start gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 print:hidden">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
           <p>
             <span className="font-medium text-zinc-800">
@@ -212,6 +212,7 @@ export default async function PaginaPanel() {
         <DetalleAsistencia
           invitacionesRespondidas={detalle.invitacionesRespondidas}
           invitacionesSinResponder={detalle.invitacionesSinResponder}
+          nombreQuinceanera={eventoNombre}
         />
       )}
     </div>

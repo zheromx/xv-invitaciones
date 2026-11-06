@@ -50,3 +50,88 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+@media print {
+  @page listado-mesas {
+    size: letter portrait;
+    margin: 14mm 12mm;
+  }
+
+  html:has(.panel-impresion) {
+    height: auto !important;
+  }
+
+  body:has(.panel-impresion) {
+    display: block !important;
+    min-height: 0 !important;
+    background: #fff !important;
+  }
+
+  .panel-impresion {
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .panel-impresion main {
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .documento-impresion {
+    page: listado-mesas;
+  }
+
+  .documento-impresion .flujo-mesas-impresion {
+    column-count: 2;
+    column-gap: 8mm;
+    column-rule: 0.4pt solid var(--color-eucalipto-200);
+    column-fill: auto;
+  }
+
+  .documento-impresion .bloque-mesa-impresion {
+    break-inside: avoid;
+    margin: 0 0 5mm;
+    padding-bottom: 5mm;
+    border-bottom: 0.4pt solid var(--color-eucalipto-100);
+  }
+
+  .documento-impresion .bloque-mesa-impresion:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .documento-impresion .identificacion-evento-impresion {
+    break-after: avoid;
+    break-inside: avoid;
+    font-size: 8.5pt;
+    line-height: 1.2;
+  }
+
+  .documento-impresion .grupo-titulo-impresion,
+  .documento-impresion .persona-impresion {
+    font-size: 11.5pt;
+    line-height: 1.35;
+  }
+
+  .documento-impresion .grupo-conteo-impresion {
+    font-size: 9.5pt;
+    line-height: 1.25;
+  }
+
+  .documento-impresion .encabezado-reporte-impresion,
+  .documento-impresion .cabecera-mesa-impresion {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  .documento-impresion .grupo-impresion {
+    break-inside: avoid;
+  }
+
+  .documento-impresion .grupo-impresion > h4 {
+    break-after: avoid;
+  }
+}

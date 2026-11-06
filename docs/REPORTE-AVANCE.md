@@ -1269,3 +1269,121 @@ Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin se
 - **Sin commit, push ni deploy.** `PLANTILLAS.md` sin cambios. `AGENTS.md`/`ALCANCE.md` no requirieron cambios en esta fase.
 - **Aprobación visual:** pendiente; el paso de lint/build no equivale a validación visual.
 
+---
+
+## 38. Encabezado destacado de mesas e impresión del listado
+
+**Fecha:** Noviembre de 2026 · Jerarquía visual de mesas y botón "Imprimir / Guardar PDF" en "Listado por mesa"; sin schema, migraciones, rutas, endpoints, dependencias ni cambios en la exportación Excel.
+
+### 38.1 Confirmación previa y alcance
+- El dueño confirmó previamente el funcionamiento del filtro y del listado por mesa (entregable §37). Esta fase **no reconstruye** ese comportamiento: reutiliza `construirListadoMesas`, sus filtros, agrupación y conteos, y solo añade presentación e impresión.
+- **Sin cambios** en `lib/asistencia-resumen.ts`, `lib/dashboard-panel.ts`, RSVP, `asiste`, `respondida`, tokens, acciones de mesas, endpoints, exportación Excel, plantillas públicas, schema ni migraciones.
+- El nombre del evento ya estaba disponible en `app/panel/page.tsx` como `eventoNombre` (desde `obtenerMetricasDashboard` → `Evento.nombreQuinceanera`). Se pasa como única prop `nombreQuinceanera`; no se creó campo ni consulta.
+
+### 38.2 Presentación de mesas (pantalla)
+- **`components/panel/detalle-asistencia.tsx`:**
+  - Franja de encabezado a ancho completo en `TarjetaMesa`: `bg-eucalipto-50`, texto `text-eucalipto-900`, borde `border-eucalipto-200`.
+  - "MESA N" grande, en versalitas y peso marcado; totales debajo; "SIN MESA ASIGNADA" se adapta con `break-words`.
+  - Título de invitación y cantidad juntos: `{titulo} — {N personas}`; nombres completos con `break-words` e indentación `pl-3`; sin truncado ni alturas fijas.
+  - Diferenciación adicional con bordes `border-eucalipto-100` entre grupos, no solo con fondos.
+  - En "Listado por mesa" se añade encabezado con título dinámico, subtítulo, "Generado: …" y "Listado filtrado" cuando hay criterios.
+  - Botón "Imprimir / Guardar PDF" con icono `Printer`, visible solo en esa pestaña y deshabilitado si `personasVisibles === 0`.
+- A 375 px la franja ocupa el ancho de la tarjeta sin márgenes negativos; los textos envuelven sin scroll horizontal.
+
+### 38.3 Impresión / Guardar PDF
+> **Sustituido por §39:** la regla de una mesa por página y los saltos forzados descritos en esta sección ya no están vigentes; el listado usa flujo continuo en dos columnas.
+
+- **Documento propio** (`DocumentoImpresion`) alimentado directamente por el mismo `listado`; no re-filtra, re-agrupa, re-ordena ni recalcula conteos. Usa texto real del DOM, seleccionable.
+- Estructura: `XV de {nombre}` (o "Listado de mesas" si no hay nombre), subtítulo "Listado de mesas", "Generado: …" y criterios; luego bloques de mesa y, al final, "Sin mesa asignada" si existe.
+- En impresión se repite la identificación del evento al inicio de cada bloque de mesa; no se repite en continuaciones de una mesa larga. Jerarquía: evento → reporte → mesa → familia → personas.
+- **Saltos:** cada bloque de mesa posterior usa `break-before: page`; "Sin mesa asignada" también si hay bloques antes. El encabezado del reporte y la primera mesa comparten la primera página; no hay portada ni página vacía previa al primer bloque.
+- **Conservación:** `break-inside: avoid` en cabecera de mesa, familia y persona; **no** en la mesa completa. Sin `zoom`, `scale`, `max-height`, recortes ni reducción de letra. Una mesa puede continuar en otra página.
+- **Estilos aislados** en `app/globals.css`:
+  - `@page listado-mesas` (carta vertical, márgenes 14 mm × 12 mm) y `page: listado-mesas` solo en `.documento-impresion`.
+  - Resets de `html`/`body` y `.panel-impresion` limitados con `:has(.panel-impresion)`; no se aplican a rutas públicas.
+  - Reglas de salto bajo `.documento-impresion`.
+- **Chrome oculto:** `print:hidden` en header del panel, encabezado del dashboard, métricas, avisos, tabs, toolbar, panel de asignación y bloque de invitaciones sin responder. El documento imprimible no está dentro de un ancestro con `display:none`.
+- **Fecha/hora:** estado inicial `null` (sin desajuste de hidratación); se fija al entrar a "Listado por mesa" y se actualiza con `flushSync` dentro del handler del botón antes de `window.print()`. Texto "Generado: …"; no se presenta como actualización automática de datos.
+- `app/panel/page.tsx` pasa `nombreQuinceanera={eventoNombre}` y aplica `print:hidden`/`print:space-y-0`; `app/panel/layout.tsx` marca `.panel-impresion`, oculta el header y resetea `main` en impresión.
+
+### 38.4 Filtros y estados vacíos
+- El documento imprime el `listado` vigente: búsqueda y filtro de mesa actuales.
+- Con filtros activos muestra "Listado filtrado" y los criterios (`Mesa: N`, `Mesa: Sin mesa asignada`, `Búsqueda: “…”`).
+- Sin filtros incluye todas las mesas y "Sin mesa asignada" si existe.
+- Botón deshabilitado y documento no renderizado cuando no hay resultados imprimibles (`personasVisibles === 0`), evitando páginas vacías. Se conservan los estados vacíos de §37.
+
+### 38.5 Verificación ejecutada
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 (solo avisos LF→CRLF de autocrlf) |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | Bloqueado por `EPERM` al regenerar Prisma Client: el servidor de desarrollo en ejecución mantiene bloqueado `query_engine-windows.dll.node`. |
+| `npx next build` (compilación de Next sin `prisma generate`) | OK; compilación, TypeScript, páginas y rutas correctas. |
+
+- Revisión estática: aislamiento de impresión, saltos, estados vacíos y conservación de filtros existentes revisados en el código. **No** se declara paginación ni diseño aprobados por lint/build.
+
+### 38.6 Pendientes manuales (no ejecutados en navegador)
+- Guardado como PDF en el navegador del organizador.
+- Mesa corta y mesa larga (continuación legible).
+- Familias cerca del salto de página.
+- Varias mesas y "Sin mesa asignada" en página nueva.
+- Nombres largos.
+- Filtros y cero resultados (botón deshabilitado).
+- Impresión sin gráficos de fondo.
+- Texto seleccionable y ausencia del contenido del dashboard.
+- Revisión a 375 px.
+- Actualización de fecha/hora al imprimir.
+
+### 38.7 Documentación y estado
+- `PLANTILLAS.md` sin cambios. Sin SQL, escrituras, seed, reset, db push ni migraciones.
+- Sin commit, push ni deploy. Aprobación visual/paginación pendiente.
+
+---
+
+## 40. Enlace privado de consulta de mesas para hostess
+
+**Fecha:** Noviembre de 2026 · Página de consulta mediante enlace privado protegido por clave aleatoria en servidor (`/consulta-mesas/[clave]`), sin login, cuentas, roles ni identificación de hostess; reutiliza los helpers puros y la presentación de solo lectura sin alterar el panel ni la consulta familiar.
+
+### 40.1 Alcance y arquitectura
+- **Ruta:** `app/consulta-mesas/[clave]/page.tsx` (`force-dynamic`), fuera de `/panel` (no afectada por `proxy.ts`) y separada de la ruta familiar por token (`/invitacion/[token]/mesas`).
+- **Autenticación y seguridad:** Validada exclusivamente en servidor mediante `HOSTESS_MESAS_CLAVE` y `HOSTESS_MESAS_EVENTO_ID` (variables privadas de servidor). Falla cerrado con `notFound()` (404) ante clave ausente, inválida, incorrecta, configuración incompleta o evento inexistente, sin revelar datos.
+- **Comparación segura:** Uso de `crypto.timingSafeEqual` con verificación previa de longitudes en bytes sobre cadenas UTF-8.
+- **Privacidad HTTP:** Cabeceras configuradas en `next.config.ts` para `/consulta-mesas/:path*`: `Referrer-Policy: no-referrer`, `Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0` y `X-Robots-Tag: noindex, nofollow, noarchive`. Metadatos con `robots: { index: false, follow: false, nocache: true }`.
+
+### 40.2 Interfaz de consulta (Hostess)
+- **`components/panel/listado-mesas-lectura.tsx`:** Componente extraído de solo lectura que contiene `TarjetaMesa`, `EstadoVacio`, pluralizadores y `VistaConsultaMesasHostess`.
+- **Qué muestra:**
+  - Título dinámico “XV de {nombreQuinceanera}” (con fallback a “Listado de mesas”) y subtítulo “Consulta de mesas”.
+  - Buscador por título de invitación o nombre de persona.
+  - Selector de mesa (Todas las mesas / Sin mesa asignada / Mesa N) y botón “Limpiar filtros”.
+  - Listado agrupado por mesa → invitación → personas, incluyendo el bloque “Sin mesa asignada” al final.
+  - Estados vacíos claros para sin respuestas, sin asistentes confirmados, sin coincidencias y mesa vacía.
+- **Qué NO muestra:** Edición de mesas (`InputMesa`), acciones de escritura, exportación Excel, impresión de PDF, navegación del panel, métricas, filtros de negativas/sin responder, teléfonos, tokens familiares, enlaces RSVP ni enlaces de WhatsApp.
+- **Adaptabilidad:** Diseño responsivo optimizado para 375 px, nombres con `break-words`, controles apilados y sin scroll horizontal.
+
+### 40.3 Extracción y reutilización
+- **`lib/consulta-mesas-hostess.ts`:** Módulo de servidor con allowlist estricta en Prisma (`Evento.nombreQuinceanera`, invitaciones respondidas con al menos un asistente confirmado, y personas con `asiste: true`).
+- **`components/panel/listado-mesas-lectura.tsx` y `detalle-asistencia.tsx`:** Extracción limpia de componentes puramente visuales de solo lectura compartidos entre el panel y la ruta de hostess, sin alterar el panel ni el documento PDF en dos columnas.
+
+### 40.4 Revocación y limitaciones de despliegue
+- **Revocación:** Cambiar o vaciar `HOSTESS_MESAS_CLAVE` o `HOSTESS_MESAS_EVENTO_ID` en el servidor impide nuevas consultas con el enlace anterior.
+- **Despliegues:** En local requiere reiniciar el servidor; en Vercel requiere un nuevo despliegue (redeploy) para aplicar variables nuevas. Las URLs anteriores en historial de navegador o cachés de infraestructura pueden permanecer accesibles hasta que el dueño restrinja o retire despliegues antiguos.
+
+### 40.5 Verificación ejecutada (resultados reales)
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 (solo avisos LF→CRLF) |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npx next build` | OK (ruta `ƒ /consulta-mesas/[clave]` presente y dinámica) |
+| Pruebas unitarias en memoria | Superadas (validación de clave, rechazo de claves cortas/vacías/erróneas) |
+
+### 40.6 Pendientes manuales y verificación en navegador
+- Acceso válido en ventana privada con clave de prueba ficticia.
+- Búsqueda y filtros de mesa en la vista de hostess.
+- Revisión móvil a 375 px.
+- Recarga con datos actualizados tras cambiar una asignación en el panel.
+- Regresión del panel, PDF en dos columnas y consulta familiar por token.
+- Verificación de cabeceras HTTP y acceso en Vercel tras despliegue del dueño.
+

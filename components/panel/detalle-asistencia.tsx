@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronDown, Download, Info, Search } from "lucide-react";
+import { ChevronDown, Download, Info, Printer, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { flushSync } from "react-dom";
 import {
   MAX_LONGITUD_BUSQUEDA,
   construirDetalle,
@@ -13,6 +14,7 @@ import {
   etiquetaAsiste,
   exportacionHabilitada,
   filtrarDetallePorMesa,
+  numeroDeMesa,
   opcionesMesaConSeleccion,
   ordenarInvitacionesSinResponder,
   resolverFiltroMesaVisible,
@@ -21,8 +23,19 @@ import {
   type FiltroMesa,
   type InvitacionSinResponder,
   type MesaListado,
+  type ResumenListadoMesas,
 } from "@/lib/asistencia-resumen";
 import { guardarMesaPersonaAction } from "@/lib/acciones-mesas";
+import {
+  TarjetaMesa,
+  EstadoVacio,
+  pluralizarPersonasCantidad,
+  pluralizarGruposCantidad,
+  pluralizarMesas,
+  pluralizarAsistentesSinMesa,
+  pluralizarMesasConAsignacion,
+  pluralizarPersonasAsignadas,
+} from "@/components/panel/listado-mesas-lectura";
 
 type OpcionFiltro = {
   valor: FiltroAsistencia;
@@ -134,93 +147,174 @@ const PESTANAS = [
 
 type Pestana = (typeof PESTANAS)[number]["id"];
 
-function pluralizarPersonasCantidad(n: number): string {
-  return n === 1 ? "1 persona" : `${n} personas`;
+const FORMATO_GENERACION = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
+
+function formatearGeneracion(fecha: Date | null): string | null {
+  return fecha ? FORMATO_GENERACION.format(fecha) : null;
 }
 
-function pluralizarGruposCantidad(n: number): string {
-  return n === 1 ? "1 familia/grupo" : `${n} familias/grupos`;
-}
-
-function pluralizarMesas(n: number): string {
-  return n === 1 ? "1 mesa" : `${n} mesas`;
-}
-
-function pluralizarAsistentesSinMesa(n: number): string {
-  return n === 1 ? "1 asistente sin mesa" : `${n} asistentes sin mesa`;
-}
-
-function pluralizarMesasConAsignacion(n: number): string {
-  return n === 1 ? "1 mesa con asignaciones" : `${n} mesas con asignaciones`;
-}
-
-function pluralizarPersonasAsignadas(n: number): string {
-  return n === 1 ? "1 persona asignada" : `${n} personas asignadas`;
-}
-
-function EstadoVacio({ titulo, texto }: { titulo: string; texto: string }) {
+function EncabezadoReporte({
+  tituloEvento,
+  mostrarSubtitulo,
+  generadoEn,
+  criterios,
+  imprimir = false,
+}: {
+  tituloEvento: string;
+  mostrarSubtitulo: boolean;
+  generadoEn: Date | null;
+  criterios: string[];
+  imprimir?: boolean;
+}) {
+  const fecha = formatearGeneracion(generadoEn);
   return (
-    <div className="mt-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center">
-      <p className="text-sm font-medium text-zinc-700">{titulo}</p>
-      <p className="mt-1 text-sm text-zinc-500">{texto}</p>
-    </div>
+    <header
+      className={
+        imprimir
+          ? "encabezado-reporte-impresion border-b-2 border-eucalipto-700 pb-3 text-eucalipto-900"
+          : "border-b border-zinc-200 pb-3 text-zinc-900"
+      }
+    >
+      <h2
+        className={`break-words font-serif font-bold ${
+          imprimir ? "text-3xl" : "text-2xl"
+        }`}
+      >
+        {tituloEvento}
+      </h2>
+      {mostrarSubtitulo && (
+        <p className="mt-1 text-sm font-medium uppercase tracking-wide text-eucalipto-700">
+          Listado de mesas
+        </p>
+      )}
+      {fecha && (
+        <p className="mt-1 text-xs text-zinc-600">Generado: {fecha}</p>
+      )}
+      {criterios.length > 0 && (
+        <p className="mt-2 border-l-2 border-eucalipto-300 pl-2 text-xs font-medium text-zinc-700">
+          Listado filtrado — {criterios.join(" · ")}
+        </p>
+      )}
+    </header>
   );
 }
 
-function TarjetaMesa({
+function BloqueMesaImpresion({
   mesa,
+  identificacionEvento,
   esSinMesa = false,
 }: {
   mesa: MesaListado;
+  identificacionEvento: string | null;
   esSinMesa?: boolean;
 }) {
-  const titulo = esSinMesa ? "Sin mesa asignada" : `Mesa ${mesa.mesa}`;
   return (
-    <article className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 className="font-serif text-base text-eucalipto-800">{titulo}</h3>
-        <p className="text-xs text-zinc-500">
+    <section className="bloque-mesa-impresion">
+      {identificacionEvento && (
+        <p className="identificacion-evento-impresion font-semibold uppercase tracking-[0.12em] text-zinc-600">
+          {identificacionEvento}
+        </p>
+      )}
+      <header
+        className={`cabecera-mesa-impresion border-b-2 border-eucalipto-700 pb-2 ${
+          identificacionEvento ? "mt-1" : ""
+        }`}
+      >
+        <h3
+          className={`break-words font-serif font-bold uppercase tracking-wide text-eucalipto-900 ${
+            esSinMesa ? "text-xl" : "text-2xl"
+          }`}
+        >
+          {esSinMesa ? "SIN MESA ASIGNADA" : `MESA ${mesa.mesa}`}
+        </h3>
+        <p className="mt-1 text-xs text-zinc-700">
           {pluralizarPersonasCantidad(mesa.totalPersonas)} ·{" "}
           {pluralizarGruposCantidad(mesa.totalGrupos)}
         </p>
       </header>
-      <ul className="mt-3 space-y-3">
+      <div className="mt-3 space-y-4">
         {mesa.grupos.map((grupo) => (
-          <li
-            key={grupo.id}
-            className="border-t border-zinc-200 pt-3 first:border-t-0 first:pt-0"
-          >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-              <h4 className="break-words text-sm font-semibold text-zinc-800">
-                {grupo.titulo}
-              </h4>
-              <span className="shrink-0 text-xs text-zinc-500">
+          <div key={grupo.id} className="grupo-impresion">
+            <h4 className="grupo-titulo-impresion break-words font-semibold text-zinc-900">
+              {grupo.titulo}
+              <span className="grupo-conteo-impresion mt-0.5 block font-normal text-zinc-600">
                 {pluralizarPersonasCantidad(grupo.totalPersonas)}
               </span>
-            </div>
-            <ul className="mt-1.5 space-y-1">
+            </h4>
+            <ul className="mt-1 space-y-1 pl-3">
               {grupo.personas.map((persona) => (
                 <li
                   key={persona.id}
-                  className="break-words text-sm text-zinc-700"
+                  className="persona-impresion min-w-0 break-words text-sm text-zinc-800"
                 >
                   {persona.nombre}
                 </li>
               ))}
             </ul>
-          </li>
+          </div>
         ))}
-      </ul>
-    </article>
+      </div>
+    </section>
+  );
+}
+
+function DocumentoImpresion({
+  listado,
+  tituloEvento,
+  mostrarSubtitulo,
+  generadoEn,
+  criterios,
+}: {
+  listado: ResumenListadoMesas;
+  tituloEvento: string;
+  mostrarSubtitulo: boolean;
+  generadoEn: Date | null;
+  criterios: string[];
+}) {
+  return (
+    <div className="documento-impresion hidden print:block">
+      <EncabezadoReporte
+        tituloEvento={tituloEvento}
+        mostrarSubtitulo={mostrarSubtitulo}
+        generadoEn={generadoEn}
+        criterios={criterios}
+        imprimir
+      />
+      <div className="flujo-mesas-impresion mt-6">
+        {listado.mesas.map((mesa) => (
+          <BloqueMesaImpresion
+            key={`impresion-mesa-${mesa.mesa}`}
+            mesa={mesa}
+            identificacionEvento={
+              mostrarSubtitulo ? tituloEvento : null
+            }
+          />
+        ))}
+        {listado.sinMesa && (
+          <BloqueMesaImpresion
+            mesa={listado.sinMesa}
+            identificacionEvento={
+              mostrarSubtitulo ? tituloEvento : null
+            }
+            esSinMesa
+          />
+        )}
+      </div>
+    </div>
   );
 }
 
 export function DetalleAsistencia({
   invitacionesRespondidas,
   invitacionesSinResponder,
+  nombreQuinceanera,
 }: {
   invitacionesRespondidas: AsistenciaInvitacion[];
   invitacionesSinResponder: InvitacionSinResponder[];
+  nombreQuinceanera: string | null;
 }) {
   const [filtro, setFiltro] = useState<FiltroAsistencia>("todas");
   const [busqueda, setBusqueda] = useState("");
@@ -228,6 +322,7 @@ export function DetalleAsistencia({
   const [pestana, setPestana] = useState<Pestana>("asignar");
   const [descargando, setDescargando] = useState(false);
   const [errorDescarga, setErrorDescarga] = useState<string | null>(null);
+  const [generadoEn, setGeneradoEn] = useState<Date | null>(null);
   const refsPestanas = useRef<Record<Pestana, HTMLButtonElement | null>>({
     asignar: null,
     listado: null,
@@ -266,6 +361,29 @@ export function DetalleAsistencia({
     detalle.totalPersonas
   );
 
+  const nombreEvento = nombreQuinceanera?.trim() ?? "";
+  const tituloEvento = nombreEvento
+    ? `XV de ${nombreEvento}`
+    : "Listado de mesas";
+  const mostrarSubtitulo = nombreEvento.length > 0;
+  const criteriosImpresion: string[] = [];
+  if (filtroMesa !== "todas") {
+    const numero = numeroDeMesa(filtroMesa);
+    criteriosImpresion.push(
+      numero === null ? "Mesa: Sin mesa asignada" : `Mesa: ${numero}`
+    );
+  }
+  if (busqueda.trim()) {
+    criteriosImpresion.push(`Búsqueda: “${busqueda.trim()}”`);
+  }
+  const puedeImprimir = listado.personasVisibles > 0;
+
+  const imprimir = () => {
+    if (!puedeImprimir) return;
+    flushSync(() => setGeneradoEn(new Date()));
+    window.print();
+  };
+
   const sinResponderOrdenadas = useMemo(
     () => ordenarInvitacionesSinResponder(invitacionesSinResponder),
     [invitacionesSinResponder]
@@ -273,6 +391,9 @@ export function DetalleAsistencia({
 
   const activarPestana = (id: Pestana, enfocar = false) => {
     setPestana(id);
+    if (id === "listado") {
+      setGeneradoEn(new Date());
+    }
     if (enfocar) {
       requestAnimationFrame(() => refsPestanas.current[id]?.focus());
     }
@@ -374,9 +495,9 @@ export function DetalleAsistencia({
   };
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <div>
+    <div className="space-y-6 print:mt-0 print:space-y-0">
+      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm print:rounded-none print:border-0 print:bg-transparent print:p-0 print:shadow-none">
+        <div className="print:hidden">
           <h2 className="font-serif text-lg text-eucalipto-700">
             Detalle de asistencia
           </h2>
@@ -388,7 +509,7 @@ export function DetalleAsistencia({
         <div
           role="tablist"
           aria-label="Vistas de mesas"
-          className="mt-4 flex flex-wrap gap-2"
+          className="mt-4 flex flex-wrap gap-2 print:hidden"
         >
           {PESTANAS.map((opcion, indice) => {
             const activa = pestana === opcion.id;
@@ -418,7 +539,7 @@ export function DetalleAsistencia({
           })}
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between print:hidden">
           <div className="relative w-full lg:max-w-xs">
             <label htmlFor="buscar-asistencia" className="sr-only">
               Buscar persona o invitación
@@ -474,7 +595,7 @@ export function DetalleAsistencia({
         </div>
 
         {mesaSuspendida && (
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-zinc-500 print:hidden">
             El filtro de mesa solo aplica a asistentes confirmados.
           </p>
         )}
@@ -485,7 +606,7 @@ export function DetalleAsistencia({
           aria-labelledby="tab-asignar"
           tabIndex={0}
           hidden={pestana !== "asignar"}
-          className="mt-4"
+          className="mt-4 print:hidden"
         >
           {detalle.hayInconsistencias && (
           <div className="mt-4 flex items-start gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
@@ -666,8 +787,32 @@ export function DetalleAsistencia({
           aria-labelledby="tab-listado"
           tabIndex={0}
           hidden={pestana !== "listado"}
-          className="mt-4"
+          className="mt-4 print:hidden"
         >
+          <EncabezadoReporte
+            tituloEvento={tituloEvento}
+            mostrarSubtitulo={mostrarSubtitulo}
+            generadoEn={generadoEn}
+            criterios={criteriosImpresion}
+          />
+
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {listado.personasVisibles > 0 ? (
+              <p className="text-xs text-zinc-500">{resumenListado}</p>
+            ) : (
+              <span className="hidden sm:block" />
+            )}
+            <button
+              type="button"
+              onClick={imprimir}
+              disabled={!puedeImprimir}
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eucalipto-700 focus-visible:ring-offset-2 sm:w-auto"
+            >
+              <Printer className="h-4 w-4" />
+              Imprimir / Guardar PDF
+            </button>
+          </div>
+
           {!listado.hayRespuestas ? (
             <EstadoVacio
               titulo="Aún no hay respuestas"
@@ -696,22 +841,29 @@ export function DetalleAsistencia({
               }
             />
           ) : (
-            <>
-              <p className="text-xs text-zinc-500">{resumenListado}</p>
-              <div className="mt-4 space-y-4">
-                {listado.mesas.map((mesa) => (
-                  <TarjetaMesa key={`mesa-${mesa.mesa}`} mesa={mesa} />
-                ))}
-                {listado.sinMesa && (
-                  <TarjetaMesa mesa={listado.sinMesa} esSinMesa />
-                )}
-              </div>
-            </>
+            <div className="mt-4 space-y-4">
+              {listado.mesas.map((mesa) => (
+                <TarjetaMesa key={`mesa-${mesa.mesa}`} mesa={mesa} />
+              ))}
+              {listado.sinMesa && (
+                <TarjetaMesa mesa={listado.sinMesa} esSinMesa />
+              )}
+            </div>
           )}
         </div>
+
+        {puedeImprimir && (
+          <DocumentoImpresion
+            listado={listado}
+            tituloEvento={tituloEvento}
+            mostrarSubtitulo={mostrarSubtitulo}
+            generadoEn={generadoEn}
+            criterios={criteriosImpresion}
+          />
+        )}
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm print:hidden">
         <details className="group">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-zinc-800 [&::-webkit-details-marker]:hidden">
             <span>

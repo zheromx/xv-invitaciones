@@ -10,6 +10,21 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "placehold.co" },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/consulta-mesas/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          {
+            key: "Cache-Control",
+            value: "private, no-store, no-cache, must-revalidate, max-age=0",
+          },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
