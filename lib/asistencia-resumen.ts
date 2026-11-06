@@ -293,3 +293,332 @@ export function construirFilasExportacion(
   }
   return filas;
 }
+
+// ---------------------------------------------------------------------------
+// Filtro por mesa y listado agrupado por mesa (solo lectura).
+// El ámbito de mesa es SIEMPRE: invitación respondida + persona asiste===true.
+// Los declinados y las invitaciones sin responder nunca entran en "sin mesa".
+// ---------------------------------------------------------------------------
+
+export type FiltroMesa = "todas" | "sin-mesa" | `mesa:${number}`;
+
+export function esFiltroMesa(valor: string): valor is FiltroMesa {
+  if (valor === "todas" || valor === "sin-mesa") return true;
+  const coincidencia = /^mesa:(\d+)$/.exec(valor);
+  if (!coincidencia) return false;
+  const numero = Number(coincidencia[1]);
+  return Number.isInteger(numero) && numero > 0 && numero <= 2147483647;
+}
+
+export function numeroDeMesa(filtro: FiltroMesa): number | null {
+  if (!filtro.startsWith("mesa:")) return null;
+  return Number(filtro.slice(5));
+}
+
+// El filtro de mesa no aplica a las respuestas negativas. Se suspende sin
+// borrar la selección para recuperarla al volver a un filtro compatible.
+export function resolverFiltroMesaEfectivo(
+  filtroAsistencia: FiltroAsistencia,
+  filtroMesa: FiltroMesa
+): FiltroMesa {
+  return filtroAsistencia === "no-asistiran" ? "todas" : filtroMesa;
+}
+
+export type PestanaAsistencia = "asignar" | "listado";
+
+// La pestaña "Listado por mesa" ignora el filtro de asistencia y usa siempre
+// la selección de mesa tal cual; así se recupera al cambiar de pestaña.
+export function resolverFiltroMesaVisible(
+  pestana: PestanaAsistencia,
+  filtroAsistencia: FiltroAsistencia,
+  filtroMesa: FiltroMesa
+): FiltroMesa {
+  return pestana === "asignar"
+    ? resolverFiltroMesaEfectivo(filtroAsistencia, filtroMesa)
+    : filtroMesa;
+}
+
+// La exportación existente solo conoce el filtro de asistencia y la búsqueda;
+// se deshabilita cuando el filtro de mesa efectivo restringe la vista.
+export function exportacionHabilitada(
+  filtroMesaEfectivo: FiltroMesa,
+  totalPersonas: number
+): boolean {
+  return filtroMesaEfectivo === "todas" && totalPersonas > 0;
+}
+
+// Opciones derivadas de TODOS los asistentes confirmados cargados (no de los
+// resultados de búsqueda), en orden numérico.
+export function derivarOpcionesMesa(
+  invitaciones: AsistenciaInvitacion[]
+): number[] {
+  const mesas = new Set<number>();
+  for (const invitacion of invitaciones) {
+    for (const persona of invitacion.personas) {
+      if (persona.asiste === true && persona.mesa !== null) {
+        mesas.add(persona.mesa);
+      }
+    }
+  }
+  return [...mesas].sort((a, b) => a - b);
+}
+
+// Conserva temporalmente la opción seleccionada aunque ya no tenga integrantes
+// (p. ej. tras reasignar al último asistente de esa mesa). No restablece nada.
+export function opcionesMesaConSeleccion(
+  opciones: number[],
+  filtroMesa: FiltroMesa
+): number[] {
+  const numero = numeroDeMesa(filtroMesa);
+  if (numero === null || opciones.includes(numero)) return opciones;
+  return [...opciones, numero].sort((a, b) => a - b);
+}
+
+function resumenMesaFiltrada(cantidad: number, numero: number | null): string {
+  const personas = cantidad === 1 ? "1 persona" : `${cantidad} personas`;
+  return numero === null
+    ? `${personas} sin mesa asignada`
+    : `${personas} en esta mesa`;
+}
+
+// Filtra el detalle de asistencia por mesa sin tocar `construirDetalle`.
+// Con "todas" devuelve la MISMA instancia para conservar exactamente el
+// comportamiento, el orden y las alertas actuales.
+export function filtrarDetallePorMesa(
+  detalle: ResumenDetalle,
+  filtroMesa: FiltroMesa
+): ResumenDetalle {
+  if (filtroMesa === "todas") return detalle;
+
+  const numero = numeroDeMesa(filtroMesa);
+  const grupos: GrupoResumen[] = [];
+
+  for (const grupo of detalle.grupos) {
+    const integrantes = grupo.integrantes.filter(
+      (persona) => persona.asiste === true && persona.mesa === numero
+    );
+    if (integrantes.length === 0) continue;
+
+    grupos.push({
+      ...grupo,
+      totalPersonas: integrantes.length,
+      totalAsisten: integrantes.length,
+      totalNoAsisten: 0,
+      totalInconsistentes: 0,
+      tieneInconsistencia: false,
+      integrantes,
+      resumenTexto: resumenMesaFiltrada(integrantes.length, numero),
+    });
+  }
+
+  return {
+    grupos,
+    totalGrupos: grupos.length,
+    totalPersonas: grupos.reduce(
+      (suma, grupo) => suma + grupo.integrantes.length,
+      0
+    ),
+    hayRespuestas: detalle.hayRespuestas,
+    hayInconsistencias: detalle.hayInconsistencias,
+  };
+}
+
+export type PersonaListadoMesa = {
+  id: string;
+  nombre: string;
+};
+
+export type GrupoListadoMesa = {
+  id: string;
+  titulo: string;
+  totalPersonas: number;
+  personas: PersonaListadoMesa[];
+};
+
+export type MesaListado = {
+  mesa: number | null;
+  totalPersonas: number;
+  totalGrupos: number;
+  grupos: GrupoListadoMesa[];
+};
+
+export type ResumenListadoMesas = {
+  mesas: MesaListado[];
+  sinMesa: MesaListado | null;
+  hayRespuestas: boolean;
+  hayAsistentes: boolean;
+  filtrosActivos: boolean;
+  mesasVisibles: number;
+  personasVisibles: number;
+  personasSinMesaVisibles: number;
+  mesasConAsignacion: number;
+  personasAsignadas: number;
+  asistentesSinMesa: number;
+};
+
+type GrupoCompleto = {
+  id: string;
+  titulo: string;
+  personas: PersonaListadoMesa[];
+};
+
+function compararGruposListado(a: GrupoCompleto, b: GrupoCompleto): number {
+  const porTitulo = compararPorTexto(a.titulo, b.titulo);
+  return porTitulo !== 0 ? porTitulo : a.id.localeCompare(b.id);
+}
+
+function compararPersonasListado(
+  a: PersonaListadoMesa,
+  b: PersonaListadoMesa
+): number {
+  const porNombre = compararPorTexto(a.nombre, b.nombre);
+  return porNombre !== 0 ? porNombre : a.id.localeCompare(b.id);
+}
+
+function construirMesaListado(
+  mesa: number | null,
+  gruposCompletos: GrupoCompleto[],
+  consulta: string
+): MesaListado | null {
+  const grupos: GrupoListadoMesa[] = [];
+
+  for (const grupo of gruposCompletos) {
+    const coincide =
+      consulta.length === 0 ||
+      normalizarTexto(grupo.titulo).includes(consulta) ||
+      grupo.personas.some((persona) =>
+        normalizarTexto(persona.nombre).includes(consulta)
+      );
+    if (!coincide) continue;
+
+    const personas = [...grupo.personas].sort(compararPersonasListado);
+    grupos.push({
+      id: grupo.id,
+      titulo: grupo.titulo,
+      totalPersonas: personas.length,
+      personas,
+    });
+  }
+
+  if (grupos.length === 0) return null;
+  grupos.sort(compararGruposListado);
+
+  return {
+    mesa,
+    totalPersonas: grupos.reduce(
+      (suma, grupo) => suma + grupo.totalPersonas,
+      0
+    ),
+    totalGrupos: grupos.length,
+    grupos,
+  };
+}
+
+// Listado de solo lectura agrupado por mesa y luego por Invitacion.id. Parte de
+// TODOS los asistentes confirmados cargados; la búsqueda se evalúa por grupo
+// dentro de cada mesa, de modo que un grupo nunca arrastra integrantes de otra
+// mesa. No muta las entradas.
+export function construirListadoMesas(
+  invitaciones: AsistenciaInvitacion[],
+  filtroMesa: FiltroMesa,
+  busqueda: string
+): ResumenListadoMesas {
+  const consulta = normalizarTexto(busqueda);
+  const filtrosActivos = filtroMesa !== "todas" || consulta.length > 0;
+
+  let personasAsignadas = 0;
+  let asistentesSinMesa = 0;
+  const mesasConAsignacion = new Set<number>();
+
+  for (const invitacion of invitaciones) {
+    for (const persona of invitacion.personas) {
+      if (persona.asiste !== true) continue;
+      if (persona.mesa === null) {
+        asistentesSinMesa += 1;
+      } else {
+        personasAsignadas += 1;
+        mesasConAsignacion.add(persona.mesa);
+      }
+    }
+  }
+
+  const hayAsistentes = personasAsignadas + asistentesSinMesa > 0;
+
+  const porMesa = new Map<number | null, Map<string, GrupoCompleto>>();
+  for (const invitacion of invitaciones) {
+    for (const persona of invitacion.personas) {
+      if (persona.asiste !== true) continue;
+
+      let grupos = porMesa.get(persona.mesa);
+      if (!grupos) {
+        grupos = new Map();
+        porMesa.set(persona.mesa, grupos);
+      }
+      let grupo = grupos.get(invitacion.id);
+      if (!grupo) {
+        grupo = {
+          id: invitacion.id,
+          titulo: invitacion.titulo,
+          personas: [],
+        };
+        grupos.set(invitacion.id, grupo);
+      }
+      grupo.personas.push({ id: persona.id, nombre: persona.nombre });
+    }
+  }
+
+  const mesas: MesaListado[] = [];
+  let sinMesa: MesaListado | null = null;
+
+  if (filtroMesa === "todas") {
+    const numeros = [...porMesa.keys()]
+      .filter((mesa): mesa is number => mesa !== null)
+      .sort((a, b) => a - b);
+    for (const numero of numeros) {
+      const mesa = construirMesaListado(
+        numero,
+        [...(porMesa.get(numero)?.values() ?? [])],
+        consulta
+      );
+      if (mesa) mesas.push(mesa);
+    }
+  } else if (filtroMesa !== "sin-mesa") {
+    const numero = numeroDeMesa(filtroMesa);
+    if (numero !== null) {
+      const mesa = construirMesaListado(
+        numero,
+        [...(porMesa.get(numero)?.values() ?? [])],
+        consulta
+      );
+      if (mesa) mesas.push(mesa);
+    }
+  }
+
+  if (filtroMesa === "todas" || filtroMesa === "sin-mesa") {
+    sinMesa = construirMesaListado(
+      null,
+      [...(porMesa.get(null)?.values() ?? [])],
+      consulta
+    );
+  }
+
+  const personasEnMesas = mesas.reduce(
+    (suma, mesa) => suma + mesa.totalPersonas,
+    0
+  );
+  const personasSinMesaVisibles = sinMesa?.totalPersonas ?? 0;
+
+  return {
+    mesas,
+    sinMesa,
+    hayRespuestas: invitaciones.length > 0,
+    hayAsistentes,
+    filtrosActivos,
+    mesasVisibles: mesas.length,
+    personasVisibles: personasEnMesas + personasSinMesaVisibles,
+    personasSinMesaVisibles,
+    mesasConAsignacion: mesasConAsignacion.size,
+    personasAsignadas,
+    asistentesSinMesa,
+  };
+}

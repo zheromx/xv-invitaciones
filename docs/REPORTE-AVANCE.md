@@ -10,7 +10,7 @@ Producto propio para crear, gestionar y confirmar invitaciones digitales de XV a
 
 - **Dominio fijo (AGENTS.md/ALCANCE.md):** la unidad central es la **Invitación** (no el invitado), con token único como autenticación; RSVP **una sola vez**; `asiste` por persona se fija al confirmar; sin vencimiento automático.
 - **Stack:** Next.js (App Router) · PostgreSQL + Prisma · Tailwind v4 · shadcn/ui · Auth.js/NextAuth (implementado) · Vercel.
-- **Fuera de alcance v1:** envío masivo de WhatsApp, QR, mesas, editor visual de plantillas, padrinos, libro de deseos, multi-evento.
+- **Fuera de alcance v1:** envío masivo de WhatsApp, QR, acomodo complejo de mesas/croquis/capacidades (la captura manual de mesa por persona, su consulta pública y la notificación manual por WhatsApp sí están incluidas; ver §36 y §37), editor visual de plantillas, padrinos, libro de deseos, multi-evento.
 
 ---
 
@@ -1208,4 +1208,64 @@ Sin cambios de datos, schema, migraciones, RSVP, Supabase ni UploadThing. Sin se
 ### 36.5 Verificación ejecutada
 - **Pruebas puras en memoria:** `lib/mesas-test.ts` ejecutado con éxito (validación de enteros positivos, nulos, límites, fallback, `{titulo}` y anexado de URL).
 - **Verificaciones del sistema:** `git diff --check`, `npm run lint`, `npx tsc --noEmit` y `npm run build` completados sin errores.
+
+---
+
+## 37. Filtro por mesa y listado agrupado por mesa
+
+**Fecha:** Noviembre de 2026 · Filtro por mesa en el detalle de asistencia y listado de solo lectura agrupado por mesa, dentro del mismo bloque del dashboard; sin schema, migraciones, rutas ni dependencias nuevas.
+
+### 37.1 Alcance y diagnóstico
+- **Ya existente (no se reconstruyó):** captura/corrección inline de `Persona.mesa` (`InputMesa` → `guardarMesaPersonaAction` → `lib/mesas-validacion.ts` → `lib/mesas-nucleo.ts`), consulta pública `/invitacion/[token]/mesas` y notificación manual por WhatsApp (§36).
+- **Datos suficientes:** `obtenerDetalleAsistencia` (`lib/dashboard-panel.ts`) ya entrega todas las invitaciones respondidas con `personas { id, nombre, asiste, mesa }` en una sola consulta; las no respondidas van aparte. No hubo consultas N+1 ni cambios de servidor.
+- **Discrepancia corregida:** la descripción de alcance de este documento ya no lista “mesas” como bloqueadas en v1: se aclara que la captura manual por persona, la consulta por token y la notificación manual están incluidas, mientras que croquis, capacidades y asignación automática siguen fuera.
+- **Sin cambios** en RSVP, `asiste`, `respondida`, tokens, métricas globales, bloque de invitaciones sin responder, rutas públicas, WhatsApp ni exportación.
+
+### 37.2 Implementación (solo 2 archivos de código)
+- **`lib/asistencia-resumen.ts`:** nuevos tipos y funciones puras: `FiltroMesa` (`todas` / `sin-mesa` / `mesa:N`), `esFiltroMesa`, `numeroDeMesa`, `resolverFiltroMesaEfectivo`, `resolverFiltroMesaVisible`, `exportacionHabilitada`, `derivarOpcionesMesa`, `opcionesMesaConSeleccion`, `filtrarDetallePorMesa` y `construirListadoMesas`. `construirDetalle`, su orden, alertas, denominadores y `construirFilasExportacion` quedan intactos.
+- **`components/panel/detalle-asistencia.tsx`:** dos pestañas accesibles (“Asignar mesas” y “Listado por mesa”) con `role="tablist/tab/tabpanel"`, `aria-selected`, `aria-controls`, `aria-labelledby`, roving `tabIndex` y navegación por `ArrowLeft/ArrowRight/Home/End`. Barra compartida (búsqueda, selector de mesa, “Limpiar filtros”) con estado elevado; cambiar de pestaña conserva búsqueda y mesa.
+- **Ámbito de mesa:** exclusivamente invitaciones respondidas + `asiste === true`. Declinados e incompletos nunca aparecen en “Sin mesa asignada”.
+- **Filtros:** “Todas las respuestas” + “Todas las mesas” conserva el detalle actual; “Todas”/“Asistirán” + mesa específica o “Sin mesa” muestra solo asistentes de esa selección con su encabezado de invitación y omite grupos vacíos; “No asistirán” deshabilita el selector y suspende su aplicación sin borrar la selección (nota visible: “El filtro de mesa solo aplica a asistentes confirmados”), y al volver a un filtro compatible o a “Listado por mesa” se recupera.
+- **Listado por mesa:** agrupación por `mesa → Invitacion.id → Persona.id`; mesas en orden numérico (1/2/10); grupos por título (`es-MX`, sin tildes/mayúsculas) con desempate por id; personas por nombre con desempate por id; título de invitación tal cual; conteo por invitación limitado a sus personas visibles en esa mesa; una invitación puede repetirse en varias mesas; “Sin mesa asignada” al final; singular/plural; sin capacidad/ocupación.
+- **Búsqueda:** normalización existente (sin tildes/mayúsculas); se evalúa por grupo dentro de cada mesa, de modo que la coincidencia por persona conserva el grupo solo en la mesa donde ocurre y no arrastra integrantes de otras mesas. Las opciones de mesa se derivan de todos los asistentes cargados, no de los resultados de búsqueda.
+- **Resumen:** sin filtros → mesas con asignaciones · personas asignadas · asistentes sin mesa (globales). Con filtro/búsqueda → “Mostrando…” calculado sobre lo visible. Estados vacíos diferenciados: sin respuestas, sin asistentes confirmados y sin coincidencias; mesa seleccionada sin integrantes conserva la opción y muestra su estado vacío.
+- **Exportación:** endpoint y contrato intactos (solo `filtro` + `busqueda`). En “Asignar mesas” el botón se deshabilita cuando el filtro de mesa efectivo no es “Todas las mesas” y se muestra el aviso “Para exportar el detalle de asistencia, selecciona Todas las mesas”; se conserva el bloqueo por falta de resultados. “Listado por mesa” no muestra exportación. Con “No asistirán” (filtro suspendido) la exportación sigue el comportamiento actual de negativas.
+- **Guardado:** la Server Action existente revalida `/panel`; tras éxito `InputMesa` llama `router.refresh()` para garantizar props frescas. `key` de `InputMesa` = `Persona.id` + mesa persistida (nunca el valor en edición): sincroniza el input y evita reinicios por rerenders ajenos o pérdida de errores. Si la persona deja de cumplir el filtro activo, desaparece sin restablecer los controles.
+- **Móvil:** controles apilados y tarjetas de ancho completo, nombres con `break-words` sin truncar; sin scroll horizontal.
+
+### 37.3 Pruebas automatizadas (fixtures en memoria)
+- Script temporal `lib/mesas-listado-test.ts` con `tsx`, eliminado después. **57/57 PASS**:
+  - opciones de mesa 1/2/10 (orden numérico, no alfabético);
+  - familia dividida entre mesas (la invitación aparece en mesa 1, 2 y 10 según sus integrantes);
+  - títulos repetidos no fusionados y nombres repetidos distintos por id;
+  - orden por mesa, grupo y persona con desempate por id;
+  - búsqueda por persona sin arrastrar integrantes de otras mesas; búsqueda por título conservando grupos por mesa;
+  - filtros combinados mesa + búsqueda;
+  - “Sin mesa” solo asistentes confirmados (excluye declinados e incompletos);
+  - mesa seleccionada sin integrantes (0 visibles, contexto conservado y opción preservada);
+  - suspensión del filtro en “No asistirán” sin perder el valor, y recuperación al cambiar de pestaña/filtro;
+  - exportación habilitada/deshabilitada según filtro efectivo y ausencia de datos;
+  - `construirDetalle` intacto (orden, integrantes y misma instancia con “Todas”);
+  - `esFiltroMesa` válido/inválido y no mutación de las entradas.
+
+### 37.4 Verificaciones estáticas (resultados reales)
+| Verificación | Resultado |
+|---|---|
+| `git diff --check` | 0 (solo avisos LF→CRLF de autocrlf) |
+| `npm run lint` | 0 |
+| `npx tsc --noEmit` | 0 |
+| `npm run build` | OK (Prisma Client regenerado; rutas del panel dinámicas; `/invitacion/[token]/mesas` presente) |
+
+### 37.5 Pendientes manuales (no verificados en navegador)
+- Revisión visual real a **375 px**: apilado de pestañas, buscador, selector y botones sin scroll horizontal; tarjetas de mesa a ancho completo; nombres completos.
+- Persistencia de búsqueda y mesa entre pestañas (la lógica pura está probada; la interacción real no).
+- Navegación de teclado de las pestañas (`Tab`, flechas, `Home`/`End`) y anuncio accesible en lector de pantalla.
+- Guardado real de una mesa con filtro activo: la persona debe desaparecer si ya no cumple el filtro, sin resetear controles ni perder errores; sincronización de `InputMesa` tras `router.refresh()`.
+- Comportamiento del aviso y botón de exportación deshabilitado con mesa filtrada.
+- Estados vacíos reales: sin respuestas, sin asistentes, sin coincidencias y mesa sin integrantes.
+
+### 37.6 Documentación y estado
+- **Sin schema, migraciones, SQL, seed, reset ni db push.** No se ejecutó `prisma migrate status` (la base Supabase documentada no administra su historial con `_prisma_migrations`).
+- **Sin commit, push ni deploy.** `PLANTILLAS.md` sin cambios. `AGENTS.md`/`ALCANCE.md` no requirieron cambios en esta fase.
+- **Aprobación visual:** pendiente; el paso de lint/build no equivale a validación visual.
 
